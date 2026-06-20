@@ -4,9 +4,11 @@ checkpoints/
 *.bin
 *.pt
 
-# Evaluation raw results (large JSON per-sample files)
+# Evaluation raw results and HuggingFace metadata
 evaluation/eval_results/
 evaluation/results/
+evaluation/__huggingface_repos__.json
+__huggingface_repos__.json
 
 # Generated data
 data/synthetic/sme_all.jsonl
