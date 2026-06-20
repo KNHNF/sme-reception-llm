@@ -1,0 +1,8 @@
+version: "3.9"
+
+services:
+  sme-backend:
+    build: .
+    ports:
+      - "5005:5005"
+    restart: unless-stopped
