@@ -1,0 +1,39 @@
+# Model weights and adapters (too large for git)
+checkpoints/
+*.safetensors
+*.bin
+*.pt
+
+# Evaluation raw results (large JSON per-sample files)
+evaluation/eval_results/
+evaluation/results/
+
+# Generated data
+data/synthetic/sme_all.jsonl
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+*.egg-info/
+
+# Virtual env
+venv/
+.venv/
+
+# Secrets
+.env
+*.env
+
+# Piper TTS binary and voice model (large files, not tracked)
+piper/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Non-code documents (word docs, assessment briefs, uni files)
+docs/
+*.docx
+*.pdf
