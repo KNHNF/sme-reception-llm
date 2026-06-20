@@ -1,7 +1,7 @@
 # sme-reception-llm
 
 LLM pipeline for a real-time voice assistant handling inbound calls for small businesses.
-UWE Bristol MSc Data Science — IGP Group Project.
+UWE Bristol MSc Data Science - IGP Group Project.
 
 ## What it does
 
