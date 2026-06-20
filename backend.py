@@ -1,0 +1,190 @@
+"""
+FastAPI Backend
+Mock calendar and booking API for the SME voice assistant demo.
+
+No real database or Google Calendar -- uses in-memory dicts.
+This is appropriate for the IGP portfolio demo and June 30th mock viva.
+
+Run:
+    pip install fastapi uvicorn
+    uvicorn backend:app --reload --port 8000
+
+Endpoints:
+    POST /turn              Full pipeline turn (utterance -> spoken response)
+    GET  /availability      Check available slots for a date + service
+    POST /book              Book an appointment
+    POST /cancel            Cancel an appointment
+    GET  /appointments      List all booked appointments (debug)
+    DELETE /appointments    Clear all bookings (debug / reset)
+"""
+
+import uuid
+from datetime import date, time
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+app = FastAPI(title="SME Voice Assistant API", version="0.1.0")
+
+# In-memory store: appointment_id -> appointment dict
+BOOKINGS: dict[str, dict] = {}
+
+# Business hours: slots available per day (24h format)
+AVAILABLE_SLOTS = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+                   "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"]
+
+SERVICE_DURATION = {
+    "general":      30,
+    "consultation": 60,
+    "follow_up":    15,
+}
+
+
+class TurnRequest(BaseModel):
+    session_id: str
+    utterance: str
+
+
+class BookRequest(BaseModel):
+    date: str          # ISO 8601
+    time: str          # HH:MM
+    service: str       # general | consultation | follow_up
+    caller_name: Optional[str] = None
+
+
+class CancelRequest(BaseModel):
+    appointment_id: Optional[str] = None
+    date: Optional[str] = None
+    time: Optional[str] = None
+
+
+class AvailabilityRequest(BaseModel):
+    date: str
+    service: Optional[str] = "general"
+
+
+# Lazy-load the pipeline so the server starts fast even without a GPU.
+_pipeline = None
+
+def get_pipeline():
+    global _pipeline
+    if _pipeline is None:
+        from src.inference import Pipeline
+        _pipeline = Pipeline(mode="mock")
+    return _pipeline
+
+
+@app.post("/turn")
+def pipeline_turn(req: TurnRequest):
+    """
+    Main endpoint. Takes a caller utterance, runs the full pipeline,
+    returns the action JSON and the spoken confirmation string.
+    """
+    from src.session_manager import get_context, update
+
+    ctx      = get_context(req.session_id)
+    pipeline = get_pipeline()
+    result   = pipeline.run(req.utterance, session_id=req.session_id, partial_context=ctx)
+
+    if result["action"]:
+        merged = update(req.session_id, result["action"], result["entities"])
+        result["action"] = merged
+
+        # If the action is a booking, execute it automatically.
+        if merged.get("action") == "book_appointment":
+            try:
+                booking = _do_book(merged)
+                result["booking_id"] = booking["appointment_id"]
+            except HTTPException as e:
+                result["booking_error"] = e.detail
+
+    return result
+
+
+@app.get("/availability")
+def check_availability(date_str: str, service: str = "general"):
+    """Return available slots for a given date, accounting for existing bookings."""
+    booked_times = {
+        b["time"] for b in BOOKINGS.values()
+        if b["date"] == date_str
+    }
+    free = [s for s in AVAILABLE_SLOTS if s not in booked_times]
+    return {
+        "date":     date_str,
+        "service":  service,
+        "duration": SERVICE_DURATION.get(service, 30),
+        "slots":    free,
+        "booked":   len(AVAILABLE_SLOTS) - len(free),
+    }
+
+
+@app.post("/book")
+def book_appointment(req: BookRequest):
+    return _do_book(req.dict())
+
+
+def _do_book(data: dict) -> dict:
+    date_str = data.get("date")
+    time_str = data.get("time")
+    service  = data.get("service", "general")
+
+    if not date_str or not time_str:
+        raise HTTPException(status_code=400, detail="date and time are required")
+
+    if service not in SERVICE_DURATION:
+        raise HTTPException(status_code=400, detail=f"Unknown service: {service}")
+
+    # Check for double-booking
+    for b in BOOKINGS.values():
+        if b["date"] == date_str and b["time"] == time_str:
+            raise HTTPException(status_code=409, detail="Slot already booked")
+
+    appt_id = f"APT-{uuid.uuid4().hex[:6].upper()}"
+    BOOKINGS[appt_id] = {
+        "appointment_id": appt_id,
+        "date":           date_str,
+        "time":           time_str,
+        "service":        service,
+        "caller_name":    data.get("caller_name"),
+        "duration_min":   SERVICE_DURATION[service],
+    }
+    return BOOKINGS[appt_id]
+
+
+@app.post("/cancel")
+def cancel_appointment(req: CancelRequest):
+    if req.appointment_id:
+        if req.appointment_id not in BOOKINGS:
+            raise HTTPException(status_code=404, detail="Appointment not found")
+        del BOOKINGS[req.appointment_id]
+        return {"cancelled": req.appointment_id}
+
+    if req.date and req.time:
+        to_cancel = [
+            aid for aid, b in BOOKINGS.items()
+            if b["date"] == req.date and b["time"] == req.time
+        ]
+        if not to_cancel:
+            raise HTTPException(status_code=404, detail="No appointment found for that date/time")
+        for aid in to_cancel:
+            del BOOKINGS[aid]
+        return {"cancelled": to_cancel}
+
+    raise HTTPException(status_code=400, detail="Provide appointment_id or date+time")
+
+
+@app.get("/appointments")
+def list_appointments():
+    return {"total": len(BOOKINGS), "appointments": list(BOOKINGS.values())}
+
+
+@app.delete("/appointments")
+def clear_appointments():
+    BOOKINGS.clear()
+    return {"message": "All appointments cleared"}
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "bookings": len(BOOKINGS)}
