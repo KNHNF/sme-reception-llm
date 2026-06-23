@@ -21,11 +21,14 @@ import time
 from pathlib import Path
 from typing import Optional
 
-# Add src to path when running as script
-sys.path.insert(0, str(Path(__file__).parent))
-
-from entity_extractor import extract, to_prompt_context
-from sme_action_schema import ActionOutput, render_confirmation
+# Support both: `python src/inference.py` (script) and `from src.inference import Pipeline` (module)
+try:
+    from src.entity_extractor import extract, to_prompt_context
+    from src.sme_action_schema import ActionOutput, render_confirmation
+except ImportError:
+    sys.path.insert(0, str(Path(__file__).parent))
+    from entity_extractor import extract, to_prompt_context
+    from sme_action_schema import ActionOutput, render_confirmation
 
 SYSTEM_PROMPT = (
     "Appointment assistant. Output one JSON object only. "
@@ -212,9 +215,16 @@ class Pipeline:
                 "caller_name":     str|None
             }
         """
-        import session_manager as sm
-        from profanity import contains_profanity, de_escalate, is_terminal_strike
-        from calendar_store import get_next_slot, describe_slot, book_slot
+        # Use src-prefixed imports to match how backend.py loads these modules,
+        # preventing dual-identity bugs where two copies of _sessions exist.
+        try:
+            import src.session_manager as sm
+            from src.profanity import contains_profanity, de_escalate, is_terminal_strike
+            from src.calendar_store import get_next_slot, describe_slot, book_slot
+        except ImportError:
+            import session_manager as sm  # type: ignore[no-redef]
+            from profanity import contains_profanity, de_escalate, is_terminal_strike  # type: ignore[no-redef]
+            from calendar_store import get_next_slot, describe_slot, book_slot  # type: ignore[no-redef]
 
         t0 = time.perf_counter()
         session = sm.get_or_create(session_id)

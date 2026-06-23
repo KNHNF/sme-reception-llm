@@ -7,7 +7,7 @@ This is appropriate for the IGP portfolio demo and June 30th mock viva.
 
 Run:
     pip install fastapi uvicorn
-    uvicorn backend:app --reload --port 8000
+    uvicorn backend:app --reload --port 5005
 
 Endpoints:
     POST /turn              Full pipeline turn (utterance -> spoken response)
@@ -121,7 +121,7 @@ def check_availability(date_str: str, service: str = "general"):
 
 @app.post("/book")
 def book_appointment(req: BookRequest):
-    return _do_book(req.dict())
+    return _do_book(req.model_dump())
 
 
 def _do_book(data: dict) -> dict:
