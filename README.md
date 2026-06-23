@@ -1,7 +1,7 @@
-# SME Reception LLM — IGP Private Dev Repo
+# SME Reception LLM - IGP Private Dev Repo
 
 LLM-based real-time voice assistant for SME appointment booking.  
-UWE Bristol MSc Data Science — Group 6 (Karan Homayounfar, 25065219)
+UWE Bristol MSc Data Science - Group 6 (Karan Homayounfar, 25065219)
 
 ---
 
@@ -114,9 +114,9 @@ No GPU needed. Image ~500MB.
 
 ## Do NOT re-run
 
-- `pip install` / `spacy download` — already done
-- Training — checkpoints already saved
-- Evaluation — 480-sample results already in `evaluation/`
+- `pip install` / `spacy download` - already done
+- Training - checkpoints already saved
+- Evaluation - 480-sample results already in `evaluation/`
 - PPTX generation — use `docs/SME_Viva_v2.pptx` (20 slides)
 
 ---
