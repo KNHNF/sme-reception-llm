@@ -23,6 +23,21 @@ class Session:
     turn_count: int = 0
     last_updated: float = field(default_factory=time.time)
 
+    # Caller identity
+    caller_name: Optional[str] = None          # captured on the first turn
+    awaiting_name: bool = False                # True if we just asked for the name
+
+    # Calendar suggestion state
+    pending_suggestion: Optional[dict] = None  # slot dict we just offered the caller
+    suggestion_index: int = 0                  # how many slots we have already skipped
+
+    # Profanity tracking
+    profanity_strikes: int = 0
+
+    # Confusion / out-of-scope retry tracking
+    confusion_count: int = 0           # increments each time the caller hits out_of_scope
+    last_out_of_scope_hint: str = ""   # last field hint given (avoids identical retries)
+
     def is_expired(self) -> bool:
         return (time.time() - self.last_updated) > TIMEOUT_SECONDS
 
@@ -31,9 +46,12 @@ class Session:
         self.turn_count += 1
 
     def clear(self):
+        """Clear booking state. Name and profanity count persist for the whole call."""
         self.partial_action = None
         self.partial_entities = {}
         self.missing_fields = []
+        self.pending_suggestion = None
+        self.suggestion_index = 0
         self.turn_count = 0
 
 

@@ -208,15 +208,118 @@ class Pipeline:
                 "spoken":          str    -- TTS-ready confirmation string
                 "latency_ms":      float
                 "entities":        dict   -- spaCy extraction
+                "end_call":        bool   -- True if the call should terminate
+                "caller_name":     str|None
             }
         """
-        t0 = time.perf_counter()
+        import session_manager as sm
+        from profanity import contains_profanity, de_escalate, is_terminal_strike
+        from calendar_store import get_next_slot, describe_slot, book_slot
 
+        t0 = time.perf_counter()
+        session = sm.get_or_create(session_id)
+
+        # ------------------------------------------------------------------
+        # 0. Profanity gate — runs before anything else
+        # ------------------------------------------------------------------
+        if contains_profanity(utterance):
+            session.profanity_strikes += 1
+            session.touch()
+            spoken   = de_escalate(session.profanity_strikes)
+            end_call = is_terminal_strike(session.profanity_strikes)
+            return self._quick(utterance, spoken, end_call, session, t0)
+
+        # ------------------------------------------------------------------
+        # 1. Name collection — intercept the first two turns
+        # ------------------------------------------------------------------
+        if session.awaiting_name:
+            # Whatever the caller said IS their name. Prefer spaCy PERSON if found.
+            entities = extract(utterance)
+            raw = utterance.strip()
+            # Strip common preambles: "it's X", "its X", "I'm X", "my name is X", "this is X"
+            import re as _re
+            match = _re.search(
+                r"(?:it'?s|i'?m|this is|my name is|name'?s|call me)\s+([A-Za-z][A-Za-z\s\-']+)",
+                raw, _re.IGNORECASE
+            )
+            if match:
+                name = match.group(1).strip().title()
+            elif entities.get("person"):
+                name = entities["person"]
+            else:
+                name = raw.title()
+            session.caller_name = name
+            session.awaiting_name = False
+            session.touch()
+            spoken = (
+                f"Thank you, {name}. How can I help you today? "
+                f"I can help with booking, cancellations, or checking availability."
+            )
+            return self._quick(utterance, spoken, False, session, t0)
+
+        if session.turn_count == 0 and session.caller_name is None:
+            # First turn — greet and capture name
+            session.awaiting_name = True
+            session.touch()
+            spoken = (
+                "Thank you for calling City Medical Practice. "
+                "Please note that this call may be recorded for quality and training purposes. "
+                "Could I take your name please?"
+            )
+            return self._quick(utterance, spoken, False, session, t0)
+
+        # ------------------------------------------------------------------
+        # 2. Pending slot confirmation — caller said yes/no to a suggestion
+        # ------------------------------------------------------------------
+        if session.pending_suggestion:
+            u = utterance.lower()
+            yes_words = {"yes", "yeah", "yep", "sure", "ok", "okay", "please",
+                         "that works", "that's fine", "sounds good", "perfect", "great"}
+            no_words  = {"no", "nope", "nah", "different", "another", "else",
+                         "not that", "other", "later", "earlier", "next"}
+
+            if any(w in u for w in yes_words):
+                slot = session.pending_suggestion
+                book_slot(slot["date"], slot["time"], slot["service"])
+                session.clear()
+                name_part = f", {session.caller_name}" if session.caller_name else ""
+                from datetime import datetime as _dt
+                d = _dt.strptime(slot["date"], "%Y-%m-%d")
+                t = _dt.strptime(slot["time"], "%H:%M")
+                spoken = (
+                    f"Brilliant{name_part}. I've booked your {slot['service'].replace('_', ' ')} "
+                    f"for {d.strftime('%A %d %B')} at {t.strftime('%I:%M %p').lstrip('0')}. "
+                    f"You'll receive a confirmation shortly. Is there anything else I can help you with?"
+                )
+                return self._quick(utterance, spoken, False, session, t0)
+
+            if any(w in u for w in no_words):
+                session.suggestion_index += 1
+                slot = get_next_slot(
+                    service=session.pending_suggestion.get("service"),
+                    skip=session.suggestion_index,
+                )
+                if slot:
+                    session.pending_suggestion = slot
+                    session.touch()
+                    spoken = f"How about {describe_slot(slot)}? Would that suit you?"
+                    return self._quick(utterance, spoken, False, session, t0)
+                else:
+                    session.pending_suggestion = None
+                    spoken = (
+                        "I'm afraid I don't have any more available slots at the moment. "
+                        "Could I take your number and have someone call you back?"
+                    )
+                    return self._quick(utterance, spoken, False, session, t0)
+
+        # ------------------------------------------------------------------
+        # 3. Normal LLM inference
+        # ------------------------------------------------------------------
         entities = extract(utterance)
         prompt   = build_prompt(utterance, entities, partial_context, self.model_family)
 
         if self.mode == "mock":
-            raw_text = self._mock_output(utterance, entities)
+            raw_text = self._mock_output(utterance, entities, session)
         elif self.mode == "ollama":
             raw_text = self._ollama_generate(prompt)
         else:
@@ -226,15 +329,105 @@ class Pipeline:
 
         parsed    = parse_llm_output(raw_text)
         validated = validate_action(parsed)
-        spoken    = render_confirmation(validated) if validated else "I could not process that. Could you repeat?"
+
+        # ------------------------------------------------------------------
+        # 4. Post-processing: enrich check_availability with a real suggestion
+        # ------------------------------------------------------------------
+        if validated and validated.action.value == "check_availability":
+            preferred_date = getattr(validated, "date", None)
+            service        = getattr(validated, "service", None)
+            svc_str        = service.value if service else None
+            slot = get_next_slot(service=svc_str, preferred_date=preferred_date,
+                                 skip=session.suggestion_index)
+            if slot:
+                session.pending_suggestion = slot
+                session.touch()
+                name_part = f", {session.caller_name}" if session.caller_name else ""
+                spoken = (
+                    f"Of course{name_part}. The next available slot is "
+                    f"{describe_slot(slot)}. Does that work for you?"
+                )
+            else:
+                spoken = (
+                    "I'm afraid there are no available slots matching that request right now. "
+                    "Would you like me to check for a different date or service?"
+                )
+        elif validated and validated.action.value == "out_of_scope":
+            session.confusion_count += 1
+            c = session.confusion_count
+            if c == 1:
+                spoken = (
+                    "I can help with booking, cancellations, or checking availability. "
+                    "For example, you could say: 'I'd like to book a general appointment' "
+                    "or 'Do you have any slots on Tuesday?'"
+                )
+            elif c == 2:
+                spoken = (
+                    "I'm sorry, I'm having trouble understanding. "
+                    "Could you try saying the date like 'Tuesday the 8th', "
+                    "the time like '10am' or '2:30pm', "
+                    "and the type — general, consultation, or follow-up?"
+                )
+            elif c == 3:
+                spoken = (
+                    "I'm still not quite catching that. "
+                    "Let me try once more — please say something like: "
+                    "'Book a general appointment on Monday at 10am.'"
+                )
+            else:
+                # 4th failure — end call gracefully
+                spoken = (
+                    "I'm afraid I'm not able to assist further on this call. "
+                    "Please call back during office hours and a member of our team will be happy to help. "
+                    "Goodbye."
+                )
+                sm.close(session_id)
+                return {
+                    "raw_output":  raw_text,
+                    "action":      parsed,
+                    "validated":   True,
+                    "spoken":      spoken,
+                    "latency_ms":  round((t1 - t0) * 1000, 2),
+                    "entities":    entities,
+                    "end_call":    True,
+                    "caller_name": session.caller_name,
+                }
+        elif validated:
+            session.confusion_count = 0   # reset on any successful action
+            spoken = render_confirmation(validated)
+        else:
+            spoken = "I could not process that. Could you repeat?"
+
+        end_call = (
+            validated is not None
+            and validated.action.value == "end_call"
+        )
+        if end_call:
+            sm.close(session_id)
 
         return {
-            "raw_output":  raw_text,
-            "action":      parsed,
-            "validated":   validated is not None,
+            "raw_output":   raw_text,
+            "action":       parsed,
+            "validated":    validated is not None,
+            "spoken":       spoken,
+            "latency_ms":   round((t1 - t0) * 1000, 2),
+            "entities":     entities,
+            "end_call":     end_call,
+            "caller_name":  session.caller_name,
+        }
+
+    def _quick(self, utterance: str, spoken: str, end_call: bool,
+               session, t0: float) -> dict:
+        """Return a fast pipeline result bypassing LLM (name capture, profanity, etc.)."""
+        return {
+            "raw_output":  "",
+            "action":      None,
+            "validated":   True,
             "spoken":      spoken,
-            "latency_ms":  round((t1 - t0) * 1000, 2),
-            "entities":    entities,
+            "latency_ms":  round((time.perf_counter() - t0) * 1000, 2),
+            "entities":    {},
+            "end_call":    end_call,
+            "caller_name": session.caller_name,
         }
 
     def _hf_generate(self, prompt: str) -> str:
@@ -287,7 +480,7 @@ class Pipeline:
         except Exception as e:
             return f'{{"action": "out_of_scope"}}  # ollama error: {e}'
 
-    def _mock_output(self, utterance: str, entities: dict) -> str:
+    def _mock_output(self, utterance: str, entities: dict, session=None) -> str:
         """
         Returns plausible JSON without a real model.
         Used for testing the pipeline structure before training is done.
@@ -297,14 +490,33 @@ class Pipeline:
         time = entities.get("time_resolved") or "10:00"
         svc  = entities.get("service") or "general"
 
+        if any(w in u for w in ["bye", "goodbye", "thank you", "thanks", "that's all",
+                                   "thats all", "no thanks", "nothing else", "have a good"]):
+            return json.dumps({"action": "end_call"})
+
+        # Confused re-asks after a clarify — treat as continued booking intent
+        if u.strip() in ("what time", "what date", "what service", "what appointment",
+                          "what?", "sorry?", "pardon?", "excuse me", "i don't understand"):
+            return json.dumps({"action": "clarify", "missing_fields": ["time"]})
+
         if any(w in u for w in ["cancel", "cancellation"]):
             return json.dumps({"action": "cancel_appointment", "date": date, "time": time})
-        if any(w in u for w in ["available", "availability", "free", "open"]):
+
+        if any(w in u for w in ["available", "availability", "free", "open", "possible"]):
             return json.dumps({"action": "check_availability", "date": date, "service": svc})
-        if any(w in u for w in ["book", "schedule", "appointment", "come in"]):
+
+        # If we're in a clarification turn for booking, treat any time/date response as continuation
+        if session and getattr(session, "partial_action", None) == "book_appointment":
+            if entities.get("time_resolved") or entities.get("date_resolved"):
+                # Merge session service if caller didn't repeat it
+                svc = svc or (session.partial_entities.get("service") or "general")
+                return json.dumps({"action": "book_appointment", "date": date, "time": time, "service": svc})
+
+        if any(w in u for w in ["book", "schedule", "appointment", "come in", "consultation"]):
             if not entities.get("time_resolved"):
                 return json.dumps({"action": "clarify", "missing_fields": ["time"]})
             return json.dumps({"action": "book_appointment", "date": date, "time": time, "service": svc})
+
         return json.dumps({"action": "out_of_scope"})
 
 
