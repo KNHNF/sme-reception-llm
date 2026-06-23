@@ -48,22 +48,26 @@ TEST_UTTERANCES = [
 ]
 
 
-def run_turn(pipeline: Pipeline, tts: TTS, utterance: str, session_id: str) -> None:
+def run_turn(pipeline: Pipeline, tts, utterance: str,
+             session_id: str, recorder=None) -> bool:
+    """Run one pipeline turn. Returns True if the call should end."""
     print(f"\n  Input:   {utterance!r}")
 
-    t0 = time.perf_counter()
     result = pipeline.run(utterance, session_id=session_id)
-    total_ms = (time.perf_counter() - t0) * 1000
 
-    print(f"  Action:  {result['action']}")
-    print(f"  Valid:   {result['validated']}")
+    name_tag = f"  Caller:  {result['caller_name']}\n" if result.get("caller_name") else ""
+    print(f"{name_tag}  Action:  {result['action']}")
     print(f"  Spoken:  {result['spoken']}")
-    print(f"  Latency: {total_ms:.1f}ms  (pipeline: {result['latency_ms']}ms)")
+    print(f"  Latency: {result['latency_ms']}ms")
 
-    tts.speak(result["spoken"])
+    audio = tts.speak(result["spoken"])
+    if recorder and audio is not None:
+        recorder.save(audio, result["spoken"])
+
+    return result.get("end_call", False)
 
 
-def voice_loop(pipeline: Pipeline, tts: TTS, whisper_model: str) -> None:
+def voice_loop(pipeline: Pipeline, tts, whisper_model: str, recorder=None) -> None:
     from src.stt import STT
     stt = STT(model_size=whisper_model)
     session_id = "demo-voice"
@@ -84,12 +88,14 @@ def voice_loop(pipeline: Pipeline, tts: TTS, whisper_model: str) -> None:
         if "quit" in utterance.lower():
             break
 
-        run_turn(pipeline, tts, utterance, session_id)
+        if run_turn(pipeline, tts, utterance, session_id, recorder):
+            print("\n  [Call ended by caller]")
+            break
 
     print("\n[Demo ended]")
 
 
-def text_loop(pipeline: Pipeline, tts: TTS) -> None:
+def text_loop(pipeline: Pipeline, tts, recorder=None) -> None:
     session_id = "demo-text"
 
     print(BANNER)
@@ -116,27 +122,51 @@ def text_loop(pipeline: Pipeline, tts: TTS) -> None:
         else:
             utterance = raw
 
-        run_turn(pipeline, tts, utterance, session_id)
+        if run_turn(pipeline, tts, utterance, session_id, recorder):
+            print("\n  [Call ended by caller]")
+            break
 
     print("\n[Demo ended]")
 
 
 class _SilentTTS:
-    def speak(self, text: str) -> None:
-        pass
+    def speak(self, text: str):
+        return None
+
+
+class _Recorder:
+    """Saves each TTS turn to a timestamped WAV in recordings/."""
+    def __init__(self):
+        import datetime
+        self.out_dir = Path(__file__).parent / "recordings"
+        self.out_dir.mkdir(exist_ok=True)
+        self.session_ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.turn = 0
+
+    def save(self, audio_data, spoken_text: str):
+        import soundfile as sf
+        self.turn += 1
+        fname = self.out_dir / f"{self.session_ts}_turn{self.turn:02d}.wav"
+        try:
+            sf.write(str(fname), audio_data["data"], audio_data["samplerate"])
+            print(f"  [Recorded -> {fname.name}]")
+        except Exception as e:
+            print(f"  [Record failed: {e}]")
 
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--text",    action="store_true", help="type input instead of speaking")
     p.add_argument("--no-tts",  action="store_true", help="skip audio output")
+    p.add_argument("--record",  action="store_true", help="save TTS audio to recordings/")
     p.add_argument("--model",   default="tiny",      help="whisper model size: tiny or small")
     args = p.parse_args()
 
     pipeline = Pipeline(mode="mock")
-    tts = TTS() if not args.no_tts else _SilentTTS()
+    tts      = TTS() if not args.no_tts else _SilentTTS()
+    recorder = _Recorder() if args.record else None
 
     if args.text:
-        text_loop(pipeline, tts)
+        text_loop(pipeline, tts, recorder=recorder)
     else:
-        voice_loop(pipeline, tts, whisper_model=args.model)
+        voice_loop(pipeline, tts, whisper_model=args.model, recorder=recorder)

@@ -13,6 +13,17 @@ __huggingface_repos__.json
 # Generated data
 data/synthetic/sme_all.jsonl
 
+# Recordings from demo (audio files)
+recordings/
+
+# Calendar state (modified by mock bookings at runtime)
+# Keep data/calendar.json in git as the default seed — but not the runtime state
+data/*.bak
+
+# Private project memory (never commit)
+CLAUDE.md
+docs/
+
 # Python cache
 __pycache__/
 *.pyc

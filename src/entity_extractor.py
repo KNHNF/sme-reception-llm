@@ -48,6 +48,7 @@ def extract(text: str, today: Optional[date] = None) -> dict:
         "time_raw":      None,
         "time_resolved": None,
         "service":       None,
+        "person":        None,   # PERSON entity (caller name)
     }
 
     for ent in doc.ents:
@@ -57,6 +58,8 @@ def extract(text: str, today: Optional[date] = None) -> dict:
         elif ent.label_ == "TIME" and result["time_raw"] is None:
             result["time_raw"]      = ent.text
             result["time_resolved"] = _resolve_time(ent.text)
+        elif ent.label_ == "PERSON" and result["person"] is None:
+            result["person"] = ent.text.title()
 
     text_lower = text.lower()
     for service, keywords in SERVICE_KEYWORDS:

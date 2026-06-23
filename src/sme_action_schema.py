@@ -4,7 +4,7 @@ LLM outputs action JSON only. Backend fills spoken strings from templates.
 """
 
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, field_validator
 import re
 
@@ -17,6 +17,7 @@ class ActionType(str, Enum):
     cancel_appointment = "cancel_appointment"
     clarify            = "clarify"         # fallback: LLM could not extract a required field
     out_of_scope       = "out_of_scope"    # caller intent is not appointment-related
+    end_call           = "end_call"        # caller said goodbye / wants to hang up
 
 
 class ServiceType(str, Enum):
@@ -28,7 +29,7 @@ class ServiceType(str, Enum):
 # Action models
 
 class CheckAvailability(BaseModel):
-    action:  ActionType  = ActionType.check_availability
+    action:  Literal[ActionType.check_availability] = ActionType.check_availability
     date:    Optional[str] = None   # ISO 8601, e.g. "2026-06-12"
     service: Optional[ServiceType] = None
 
@@ -41,7 +42,7 @@ class CheckAvailability(BaseModel):
 
 
 class BookAppointment(BaseModel):
-    action:  ActionType = ActionType.book_appointment
+    action:  Literal[ActionType.book_appointment] = ActionType.book_appointment
     date:    str                   # required
     time:    str                   # HH:MM 24h, e.g. "15:00"
     service: ServiceType
@@ -62,7 +63,7 @@ class BookAppointment(BaseModel):
 
 
 class CancelAppointment(BaseModel):
-    action:         ActionType = ActionType.cancel_appointment
+    action:         Literal[ActionType.cancel_appointment] = ActionType.cancel_appointment
     appointment_id: Optional[str] = None  # if caller provides a reference number
     date:           Optional[str] = None  # fallback identifier
     time:           Optional[str] = None
@@ -76,12 +77,16 @@ class CancelAppointment(BaseModel):
 
 
 class Clarify(BaseModel):
-    action:         ActionType = ActionType.clarify
+    action:         Literal[ActionType.clarify] = ActionType.clarify
     missing_fields: list[str]  # e.g. ["date", "service"]
 
 
 class OutOfScope(BaseModel):
-    action: ActionType = ActionType.out_of_scope
+    action: Literal[ActionType.out_of_scope] = ActionType.out_of_scope
+
+
+class EndCall(BaseModel):
+    action: Literal[ActionType.end_call] = ActionType.end_call
 
 
 # Union type for outlines / lm-format-enforcer
@@ -89,13 +94,19 @@ class OutOfScope(BaseModel):
 # Only CheckAvailability, BookAppointment, CancelAppointment are trained actions.
 # Clarify and OutOfScope are safety valves.
 
-from typing import Union
-ActionOutput = Union[
-    CheckAvailability,
-    BookAppointment,
-    CancelAppointment,
-    Clarify,
-    OutOfScope,
+from typing import Annotated, Union
+from pydantic import Field
+
+ActionOutput = Annotated[
+    Union[
+        CheckAvailability,
+        BookAppointment,
+        CancelAppointment,
+        Clarify,
+        OutOfScope,
+        EndCall,
+    ],
+    Field(discriminator="action"),
 ]
 
 
@@ -135,6 +146,9 @@ CONFIRMATION_TEMPLATES = {
     ActionType.out_of_scope: (
         "I can help with appointment booking, cancellations, and availability. "
         "Is there something along those lines I can help with?"
+    ),
+    ActionType.end_call: (
+        "Thank you for calling. Have a great day. Goodbye!"
     ),
 }
 
@@ -188,14 +202,25 @@ def render_confirmation(action_obj: BaseModel) -> str:
         )
 
     elif a == ActionType.clarify:
-        fields = " and ".join(action_obj.missing_fields)
-        return f"Could you please confirm {fields}?"
+        field_hints = {
+            "time":    "what time you would like — for example, '10am' or '2:30pm'",
+            "date":    "which date you would like — for example, 'this Monday' or 'June 30th'",
+            "service": "what type of appointment — general, consultation, or follow-up",
+        }
+        prompts = []
+        for f in action_obj.missing_fields:
+            prompts.append(field_hints.get(f, f))
+        joined = " and ".join(prompts)
+        return f"Of course — could you also let me know {joined}?"
 
     elif a == ActionType.out_of_scope:
         return (
             "I can help with appointment booking, cancellations, and availability. "
             "Is there something along those lines I can help with?"
         )
+
+    elif a == ActionType.end_call:
+        return "Thank you for calling. Have a great day. Goodbye!"
 
     return "I did not quite catch that. Could you repeat?"
 
