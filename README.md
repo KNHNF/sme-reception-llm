@@ -1,85 +1,126 @@
-# sme-reception-llm
+# SME Reception LLM — IGP Private Dev Repo
 
-LLM pipeline for a real-time voice assistant handling inbound calls for small businesses.
-UWE Bristol MSc Data Science - IGP Group Project.
+LLM-based real-time voice assistant for SME appointment booking.  
+UWE Bristol MSc Data Science — Group 6 (Karan Homayounfar, 25065219)
+
+---
 
 ## What it does
 
-Converts a caller utterance into a structured booking action:
+A fully offline phone assistant for small businesses. Caller speaks → system books the appointment.
 
 ```
-mic -> Faster-Whisper STT -> spaCy entity extraction -> fine-tuned LLM -> JSON action -> Piper TTS
+mic → Faster-Whisper STT → spaCy NER → fine-tuned LLM → JSON action → Piper TTS → spoken response
 ```
 
-Supports: book appointment, cancel appointment, check availability, clarify (missing fields), out of scope.
+Handles: booking, cancellations, availability checks, name capture, calendar suggestions, profanity (3-strike), end-of-call detection. Runs on CPU, no cloud.
 
-## Models
+---
 
-Two models fine-tuned with QLoRA on a 480-sample synthetic dataset:
+## Eval results
 
-| Model | Action Accuracy | Exact Match | Latency p50 |
-|---|---|---|---|
-| Phi-3 mini 3.8B (vanilla) | 0.4% | 0% | 4410ms |
-| Phi-3 mini 3.8B (fine-tuned) | 98.1% | 70.6% | 3556ms |
-| Llama 3.2 3B (vanilla) | 0% | 0% | 2791ms |
-| Llama 3.2 3B (fine-tuned) | 99.8% | 70.4% | 3703ms |
+| Condition              | Action Accuracy | Exact Match | Latency P50 |
+|------------------------|-----------------|-------------|-------------|
+| Phi-3 mini (vanilla)   | 0.4%            | 0%          | 4410ms      |
+| Phi-3 mini (fine-tuned)| 98.1%           | 70.6%       | 3556ms      |
+| Llama 3.2 3B (vanilla) | 0.0%            | 0%          | 2791ms      |
+| Llama 3.2 3B (fine-tuned) | **99.8%**   | 70.4%       | 3703ms      |
 
-Adapters trained on Kaggle T4 GPU (free tier). Mock mode runs on CPU with no download.
+480-sample 4-condition eval. Training: 600 synthetic samples, Kaggle T4, ~60–70 min.
+
+---
 
 ## Quick start
 
-```
-cd files_IGP
-pip install fastapi uvicorn pydantic spacy
+```bash
+# Install (one time — already done on Karan's machine)
+pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 
-# Text demo (no mic, no GPU)
-python demo.py --text --no-tts
+# Run (choose one)
+python demo.py --text --no-tts          # safest, no audio hardware
+python demo.py --text --no-tts --record # saves TTS WAVs to recordings/
+python demo.py                          # full voice mode
 
-# Backend server
-uvicorn backend:app --reload --port 5005
-# Then open http://localhost:5005/docs
+# API server
+uvicorn backend:app --port 5005
+# Swagger docs: http://localhost:5005/docs
 ```
 
-## Docker (mock backend)
+---
+
+## File map
 
 ```
-cd files_IGP
+src/
+  inference.py          Pipeline class: profanity → name → slot confirm → LLM
+  entity_extractor.py   spaCy NER: DATE, TIME, SERVICE, PERSON
+  session_manager.py    In-memory session: name, partial_action, confusion_count
+  sme_action_schema.py  Pydantic v2 discriminated union — 6 action types
+  stt.py                Faster-Whisper microphone capture
+  tts.py                Piper TTS subprocess wrapper
+  profanity.py          3-strike keyword filter + de-escalation
+  calendar_store.py     Reads data/calendar.json, find_next_slot(), book_slot()
+
+data/
+  calendar.json         Mock 3-week appointment schedule
+
+evaluation/
+  eval_phi3.py          Evaluation script — Phi-3 mini
+  eval_llama3.py        Evaluation script — Llama 3.2 3B
+
+checkpoints/            QLoRA adapter weights (gitignored — too large)
+  sme-phi3-qlora/
+  sme-llama3-qlora/
+
+docs/                   (gitignored — private viva notes, paper, diagrams)
+  pipeline_flowchart.html   Interactive pipeline + 39 papers mapped
+  paper_final.html          Academic paper, 38 citations, SVG result charts
+  SME_Viva_v2.pptx          20-slide viva deck (use this, not the old one)
+  VIVA_GUIDE.md             Slide-by-slide guide + email drafts
+  PROJECT_FULL.md           Full technical reference + YouTube links
+  BUGS_AND_FIXES.md         7 documented bugs and fixes
+
+backend.py              FastAPI app — /turn, /book, /cancel, /availability
+demo.py                 End-to-end demo (text or voice, mock or real model)
+```
+
+---
+
+## Conversation flow
+
+1. Turn 0: greeting + "Could I take your name please?" + recording notice
+2. Turn 1: name captured (regex strips "it's / I'm / my name is" preamble)
+3. Normal turns: utterance → spaCy NER → LLM → JSON action
+4. `check_availability` → `calendar_store` → "Next slot is X, does that work?"
+5. Caller says yes → `book_slot()` → confirmation with name
+6. Caller says no → suggest next slot
+7. Confusion escalation: 4-step retry with format hints, ends call on 4th failure
+8. Profanity: 3-strike, ends call on strike 3
+9. "bye / goodbye / thanks" → `end_call` → loop terminates
+
+---
+
+## Docker
+
+```bash
 docker build -t sme-backend .
 docker run -p 5005:5005 sme-backend
 ```
 
-Image size: ~500MB. No GPU needed.
+No GPU needed. Image ~500MB.
 
-## Project structure
+---
 
-```
-files_IGP/
-  src/
-    inference.py        pipeline core (mock / vanilla / finetuned / ollama)
-    entity_extractor.py spaCy NER for date, time, service
-    session_manager.py  multi-turn conversation state
-    sme_action_schema.py Pydantic models + JSON schema + TTS templates
-    stt.py              Faster-Whisper mic recording + transcription
-    tts.py              Piper TTS wrapper
-  scripts/
-    generate_dataset.py synthetic training data (600 samples)
-    train_qlora.py      QLoRA fine-tuning (local)
-    kaggle_train.ipynb  Phi-3 training notebook (Kaggle)
-    kaggle_train_llama.ipynb Llama 3 training notebook (Kaggle)
-    kaggle_eval.ipynb   4-condition evaluation notebook (Kaggle)
-    evaluate_model.py   local evaluation script
-  backend.py            FastAPI server with mock calendar
-  demo.py               end-to-end voice demo script
-  docs/
-    pipeline_flowchart.html      interactive pipeline diagram
-    pipeline_figure_report.html  report-style diagram
-```
+## Do NOT re-run
 
-## Related repos
+- `pip install` / `spacy download` — already done
+- Training — checkpoints already saved
+- Evaluation — 480-sample results already in `evaluation/`
+- PPTX generation — use `docs/SME_Viva_v2.pptx` (20 slides)
 
-- STT evaluation: [whisper-stt-eval](https://github.com/KNHNF/whisper-stt-eval)
+---
 
 ## Stack
 
-Python 3.11, Faster-Whisper, spaCy, Phi-3 mini, Llama 3.2 3B, QLoRA/PEFT, FastAPI, Pydantic v2, Piper TTS, Docker
+Python 3.11, Faster-Whisper, spaCy en_core_web_sm, Phi-3 mini, Llama 3.2 3B, QLoRA/PEFT, BitsAndBytes 4-bit NF4, FastAPI, Pydantic v2, Piper TTS, Docker
