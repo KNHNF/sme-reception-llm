@@ -19,12 +19,12 @@ Handles: booking, cancellations, availability checks, name capture, calendar sug
 
 ## Eval results
 
-| Condition              | Action Accuracy | Exact Match | Latency P50 |
-|------------------------|-----------------|-------------|-------------|
-| Phi-3 mini (vanilla)   | 0.4%            | 0%          | 4410ms      |
-| Phi-3 mini (fine-tuned)| 98.1%           | 70.6%       | 3556ms      |
-| Llama 3.2 3B (vanilla) | 0.0%            | 0%          | 2791ms      |
-| Llama 3.2 3B (fine-tuned) | **99.8%**   | 70.4%       | 3703ms      |
+| Condition                 | Action Accuracy | Exact Match | Latency P50 |
+|---------------------------|-----------------|-------------|-------------|
+| Phi-3 mini (vanilla)      | 0.4%            | 0%          | 4410ms      |
+| Phi-3 mini (fine-tuned)   | 98.1%           | 70.6%       | 3556ms      |
+| Llama 3.2 3B (vanilla)    | 0.0%            | 0%          | 2791ms      |
+| Llama 3.2 3B (fine-tuned) | **99.8%**       | 70.4%       | 3703ms      |
 
 480-sample 4-condition eval. Training: 600 synthetic samples, Kaggle T4, ~60–70 min.
 
@@ -44,7 +44,9 @@ python demo.py                          # full voice mode
 
 # API server
 uvicorn backend:app --port 5005
-# Swagger docs: http://localhost:5005/docs
+# Swagger docs:        http://localhost:5005/docs
+# Metrics dashboard:   http://localhost:5005/metrics-dashboard
+# Metrics JSON:        http://localhost:5005/metrics
 ```
 
 ---
@@ -58,12 +60,14 @@ src/
   session_manager.py    In-memory session: name, partial_action, confusion_count
   sme_action_schema.py  Pydantic v2 discriminated union — 6 action types
   stt.py                Faster-Whisper microphone capture
-  tts.py                Piper TTS subprocess wrapper
+  tts.py                Piper TTS subprocess wrapper (dual-flag, detailed errors)
   profanity.py          3-strike keyword filter + de-escalation
   calendar_store.py     Reads data/calendar.json, find_next_slot(), book_slot()
+  metrics_logger.py     SQLite logger: per-turn accuracy + latency → data/metrics.db
 
 data/
   calendar.json         Mock 3-week appointment schedule
+  metrics.db            Auto-created on first /turn call (gitignored)
 
 evaluation/
   eval_phi3.py          Evaluation script — Phi-3 mini
@@ -74,14 +78,17 @@ checkpoints/            QLoRA adapter weights (gitignored — too large)
   sme-llama3-qlora/
 
 docs/                   (gitignored — private viva notes, paper, diagrams)
+  SME_Viva_v3.pptx          12-slide 5-min mock viva deck (current)
   pipeline_flowchart.html   Interactive pipeline + 39 papers mapped
   paper_final.html          Academic paper, 38 citations, SVG result charts
-  SME_Viva_v2.pptx          20-slide viva deck (use this, not the old one)
-  VIVA_GUIDE.md             Slide-by-slide guide + email drafts
-  PROJECT_FULL.md           Full technical reference + YouTube links
-  BUGS_AND_FIXES.md         7 documented bugs and fixes
+  dashboard.html            Live metrics dashboard (Chart.js, auto-refresh 5s)
+  CallFlow_Emails.md        Email drafts — Iheanyi Ibe + Mark Corderoy
+  VIVA_GUIDE.md             Slide-by-slide viva guide
+  PROJECT_FULL.md           Full technical reference
+  BUGS_AND_FIXES.md         Dev issues log
 
-backend.py              FastAPI app — /turn, /book, /cancel, /availability
+backend.py              FastAPI app — /turn, /book, /cancel, /availability,
+                        /metrics, /metrics/clear, /metrics-dashboard
 demo.py                 End-to-end demo (text or voice, mock or real model)
 ```
 
@@ -89,15 +96,16 @@ demo.py                 End-to-end demo (text or voice, mock or real model)
 
 ## Conversation flow
 
-1. Turn 0: greeting + "Could I take your name please?" + recording notice
+1. Turn 0: greeting + "Could I take your name please?"
 2. Turn 1: name captured (regex strips "it's / I'm / my name is" preamble)
-3. Normal turns: utterance → spaCy NER → LLM → JSON action
-4. `check_availability` → `calendar_store` → "Next slot is X, does that work?"
-5. Caller says yes → `book_slot()` → confirmation with name
-6. Caller says no → suggest next slot
-7. Confusion escalation: 4-step retry with format hints, ends call on 4th failure
-8. Profanity: 3-strike, ends call on strike 3
-9. "bye / goodbye / thanks" → `end_call` → loop terminates
+3. Turn 2: name confirmation ("Did I get that as X?") — yes/no/correction handled
+4. Normal turns: utterance → spaCy NER → LLM → JSON action
+5. `check_availability` → `calendar_store` → "Next slot is X, does that work?"
+6. Caller says yes → `book_slot()` → confirmation with name
+7. Caller says no → suggest next slot
+8. Confusion escalation: 4-step retry with format hints, ends call on 4th failure
+9. Profanity: 3-strike, ends call on strike 3
+10. "bye / goodbye / thanks" → `end_call` → loop terminates
 
 ---
 
@@ -114,13 +122,13 @@ No GPU needed. Image ~500MB.
 
 ## Do NOT re-run
 
-- `pip install` / `spacy download` - already done
-- Training - checkpoints already saved
-- Evaluation - 480-sample results already in `evaluation/`
-- PPTX generation — use `docs/SME_Viva_v2.pptx` (20 slides)
+- `pip install` / `spacy download` — already done
+- Training — checkpoints already saved
+- Evaluation — 480-sample results already in `evaluation/`
+- PPTX generation — use `docs/SME_Viva_v3.pptx` (12 slides, current)
 
 ---
 
 ## Stack
 
-Python 3.11, Faster-Whisper, spaCy en_core_web_sm, Phi-3 mini, Llama 3.2 3B, QLoRA/PEFT, BitsAndBytes 4-bit NF4, FastAPI, Pydantic v2, Piper TTS, Docker
+Python 3.11, Faster-Whisper, spaCy en_core_web_sm, Phi-3 mini, Llama 3.2 3B, QLoRA/PEFT, BitsAndBytes 4-bit NF4, FastAPI, Pydantic v2, Piper TTS, SQLite, Docker

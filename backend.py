@@ -16,6 +16,9 @@ Endpoints:
     POST /cancel            Cancel an appointment
     GET  /appointments      List all booked appointments (debug)
     DELETE /appointments    Clear all bookings (debug / reset)
+    GET  /metrics           Conversation metrics (accuracy, latency, per-action)
+    POST /metrics/clear     Clear all logged metrics
+    GET  /metrics-dashboard Serve the live HTML dashboard
 """
 
 import uuid
@@ -23,9 +26,19 @@ from datetime import date, time
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
+from pathlib import Path
 
 app = FastAPI(title="SME Voice Assistant API", version="0.1.0")
+DASHBOARD_PATH = Path(__file__).parent / "docs" / "dashboard.html"
+
+def _get_logger():
+    try:
+        from src.metrics_logger import log_turn, get_metrics, clear_metrics
+    except ImportError:
+        from metrics_logger import log_turn, get_metrics, clear_metrics  # type: ignore
+    return log_turn, get_metrics, clear_metrics
 
 # In-memory store: appointment_id -> appointment dict
 BOOKINGS: dict[str, dict] = {}
@@ -99,7 +112,49 @@ def pipeline_turn(req: TurnRequest):
             except HTTPException as e:
                 result["booking_error"] = e.detail
 
+    # Log metrics
+    try:
+        log_turn, _, _ = _get_logger()
+        log_turn(
+            session_id=req.session_id,
+            utterance=req.utterance,
+            action=result.get("action"),
+            validated=result.get("validated", False),
+            latency_ms=result.get("latency_ms", 0),
+        )
+    except Exception:
+        pass  # Never let metrics break the pipeline
+
     return result
+
+
+@app.get("/metrics")
+def metrics_endpoint():
+    """Return conversation metrics: accuracy, latency P50/P95, per-action counts."""
+    try:
+        _, get_metrics, _ = _get_logger()
+        return get_metrics()
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/metrics/clear")
+def metrics_clear():
+    """Clear all logged turn data."""
+    try:
+        _, _, clear_metrics = _get_logger()
+        clear_metrics()
+        return {"message": "Metrics cleared"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/metrics-dashboard")
+def metrics_dashboard():
+    """Serve the live HTML metrics dashboard."""
+    if DASHBOARD_PATH.exists():
+        return FileResponse(str(DASHBOARD_PATH), media_type="text/html")
+    return JSONResponse({"error": "dashboard.html not found in docs/"}, status_code=404)
 
 
 @app.get("/availability")

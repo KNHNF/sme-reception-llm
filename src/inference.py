@@ -260,11 +260,42 @@ class Pipeline:
                 name = raw.title()
             session.caller_name = name
             session.awaiting_name = False
+            session.awaiting_name_confirm = True
             session.touch()
             spoken = (
-                f"Thank you, {name}. How can I help you today? "
-                f"I can help with booking, cancellations, or checking availability."
+                f"Thank you. Just to confirm — did I catch that correctly as {name}?"
             )
+            return self._quick(utterance, spoken, False, session, t0)
+
+        if getattr(session, "awaiting_name_confirm", False):
+            # Caller is confirming or correcting their name
+            u = utterance.lower().strip()
+            yes_words = {"yes", "yeah", "yep", "correct", "right", "that's right",
+                         "yep that's right", "thats right", "that's correct", "sure"}
+            no_words  = {"no", "nope", "wrong", "not quite", "actually", "it's",
+                         "its", "i'm", "my name is"}
+            session.awaiting_name_confirm = False
+            if any(w in u for w in yes_words):
+                session.touch()
+                spoken = (
+                    f"Great, thanks {session.caller_name}. How can I help you today? "
+                    f"I can help with booking, cancellations, or checking availability."
+                )
+            else:
+                # They're correcting — re-capture from this utterance
+                import re as _re2
+                match2 = _re2.search(
+                    r"(?:it'?s|i'?m|this is|my name is|name'?s|actually|call me)\s+"
+                    r"([A-Za-z][A-Za-z\s\-']+)",
+                    utterance, _re2.IGNORECASE
+                )
+                if match2:
+                    session.caller_name = match2.group(1).strip().title()
+                session.touch()
+                spoken = (
+                    f"Apologies! Thanks {session.caller_name}. How can I help you today? "
+                    f"I can help with booking, cancellations, or checking availability."
+                )
             return self._quick(utterance, spoken, False, session, t0)
 
         if session.turn_count == 0 and session.caller_name is None:
