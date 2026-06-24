@@ -21,19 +21,16 @@ _SERVICE_ALIASES = {
     "followup":     "follow_up",
 }
 
-
 def _load() -> list[dict]:
     with open(_DATA_PATH) as f:
         data = json.load(f)
     return data["slots"]
 
-
 def _ordinal(n: int) -> str:
-    """Return the ordinal string for a day number: 1 → '1st', 25 → '25th'."""
+    """Return the ordinal string for a day number: 1 -> '1st', 25 -> '25th'."""
     if 11 <= (n % 100) <= 13:
         return f"{n}th"
     return f"{n}{['th', 'st', 'nd', 'rd', 'th'][min(n % 10, 4)]}"
-
 
 def _fmt_slot(slot: dict) -> str:
     """Human-readable slot description."""
@@ -50,7 +47,6 @@ def _fmt_slot(slot: dict) -> str:
         f"{label} on {day_str} "
         f"at {t.strftime('%I:%M %p').lstrip('0')}"
     )
-
 
 def find_slots(
     service: Optional[str] = None,
@@ -94,7 +90,6 @@ def find_slots(
 
     return available[skip : skip + 10]
 
-
 def get_next_slot(
     service: Optional[str] = None,
     preferred_date: Optional[str] = None,
@@ -104,11 +99,9 @@ def get_next_slot(
     slots = find_slots(service=service, preferred_date=preferred_date, skip=skip)
     return slots[0] if slots else None
 
-
 def describe_slot(slot: dict) -> str:
     """Return the spoken description of a slot."""
     return _fmt_slot(slot)
-
 
 def book_slot(date: str, time: str, service: str) -> bool:
     """
@@ -129,7 +122,6 @@ def book_slot(date: str, time: str, service: str) -> bool:
                 json.dump(full, f, indent=2)
             return True
     return False
-
 
 def get_business_info() -> dict:
     with open(_DATA_PATH) as f:

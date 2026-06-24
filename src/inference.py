@@ -22,15 +22,14 @@ import time
 from pathlib import Path
 from typing import Optional
 
-
 def _join_spelled_name(text: str) -> str:
     """Convert hyphen-spelled names to a proper word.
 
-    'K-A-R-A-N'             → 'Karan'
-    'J-A-C-K R-E-A-C-H-E-R' → 'Jack Reacher'  (two separate groups)
-    'my name is K-A-R-A-N'  → 'my name is Karan'
+    'K-A-R-A-N'             -> 'Karan'
+    'J-A-C-K R-E-A-C-H-E-R' -> 'Jack Reacher'  (two separate groups)
+    'my name is K-A-R-A-N'  -> 'my name is Karan'
 
-    Uses HYPHENS only as separators — spaces between groups mark word boundaries
+    Uses HYPHENS only as separators - spaces between groups mark word boundaries
     so 'J-A-C-K R-E-A-C-H-E-R' becomes two matches, not one big 'Jackreacher'.
     """
     def _join(m: _re_top.Match) -> str:
@@ -58,12 +57,10 @@ SYSTEM_PROMPT = (
     "If fields missing: {\"action\": \"clarify\", \"missing_fields\": [...]}."
 )
 
-
 MODEL_IDS = {
     "phi3":   "microsoft/Phi-3-mini-4k-instruct",
     "llama3": "meta-llama/Llama-3.2-3B-Instruct",
 }
-
 
 def build_prompt(utterance: str, entities: dict, partial_context: Optional[dict] = None,
                  model_family: str = "phi3") -> str:
@@ -109,7 +106,6 @@ def build_prompt(utterance: str, entities: dict, partial_context: Optional[dict]
         f"<|assistant|>\n"
     )
 
-
 def parse_llm_output(text: Optional[str]) -> Optional[dict]:
     """Extract JSON from LLM output, tolerating minor formatting noise."""
     if not text:
@@ -124,7 +120,6 @@ def parse_llm_output(text: Optional[str]) -> Optional[dict]:
     except json.JSONDecodeError:
         return None
 
-
 def validate_action(raw: Optional[dict]):
     """
     Validate against the Pydantic schema.
@@ -138,7 +133,6 @@ def validate_action(raw: Optional[dict]):
         return adapter.validate_python(raw)
     except ValidationError:
         return None
-
 
 class Pipeline:
     """
@@ -335,7 +329,7 @@ class Pipeline:
                 )
                 if _is_intent:
                     if session.name_reask_count >= 2:
-                        # Caller has ignored the name prompt twice — proceed without name,
+                        # Caller has ignored the name prompt twice - proceed without name,
                         # store a placeholder so the rest of the pipeline works normally.
                         session.caller_name = "there"
                         session.awaiting_name = False
@@ -354,7 +348,7 @@ class Pipeline:
             # Guard: awaiting_name may have been cleared by the name_reask bypass above.
             # If so, skip name confirmation and fall through to normal turn processing.
             if not session.awaiting_name:
-                pass  # bypass already set caller_name and cleared flags — continue below
+                pass  # bypass already set caller_name and cleared flags - continue below
             else:
                 session.caller_name = name
                 session.awaiting_name = False
@@ -382,7 +376,7 @@ class Pipeline:
             else:
                 # Check if they ignored the confirmation and sent booking intent again
                 # Only re-ask if this looks like booking intent, NOT a name correction.
-                # "No, it's Jack Richer" is a correction even though it's 4 words —
+                # "No, it's Jack Richer" is a correction even though it's 4 words -
                 # so rely on verb presence only, not word count.
                 _reask_verbs = {"want", "like", "need", "book", "make", "cancel",
                                 "check", "schedule", "appointment", "consultation",
@@ -456,7 +450,7 @@ class Pipeline:
                 return self._quick(utterance, spoken, False, session, t0)
 
             # Check for a specific date request BEFORE the general no_words check.
-            # "the 26th", "on Friday", "if possible on the 24th" — NER + regex fallback.
+            # "the 26th", "on Friday", "if possible on the 24th" - NER + regex fallback.
             # spaCy en_core_web_sm sometimes misses "the 26th of June" so we add a
             # direct ordinal-date regex as a safety net.
             _ents = extract(utterance)
@@ -520,7 +514,7 @@ class Pipeline:
             if any(w in u for w in no_words):
                 session.suggestion_index += 1
                 # "later date" / "another day" = jump to NEXT calendar day entirely.
-                # "later" / "earlier" alone = same day different time → keep preferred_date.
+                # "later" / "earlier" alone = same day different time -> keep preferred_date.
                 _wants_diff_day = any(w in u for w in diff_day_words)
                 if _wants_diff_day:
                     # Filter all future slots to those strictly after the current suggested date
@@ -634,7 +628,7 @@ class Pipeline:
         elif validated:
             session.confusion_count = 0   # reset on any successful action
             # For direct book_appointment (model returned specific date+time+service),
-            # actually write to the calendar — render_confirmation is text-only.
+            # actually write to the calendar - render_confirmation is text-only.
             if validated.action.value == "book_appointment":
                 book_slot(validated.date, validated.time, validated.service.value)
             spoken = render_confirmation(validated)
@@ -739,7 +733,7 @@ class Pipeline:
 
         # Confused re-asks after a clarify - treat as continued booking intent
         if u.strip() in ("what time", "what date", "what service", "what appointment",
-                          "what?", "sorry?", "pardon?", "excuse me", "i don’t understand"):
+                          "what?", "sorry?", "pardon?", "excuse me", "i don't understand"):
             return json.dumps({"action": "clarify", "missing_fields": ["time"]})
 
         if any(w in u for w in ["cancel", "cancellation"]):
@@ -755,7 +749,7 @@ class Pipeline:
             return json.dumps({"action": "out_of_scope"})
 
         # If specific date AND time are mentioned, go straight to book_appointment.
-        # Otherwise use check_availability so the slot-suggestion → yes/no flow runs
+        # Otherwise use check_availability so the slot-suggestion -> yes/no flow runs
         # and book_slot() is actually called when the caller confirms.
         has_date = bool(entities.get("date_resolved"))
         has_time = bool(entities.get("time_resolved"))

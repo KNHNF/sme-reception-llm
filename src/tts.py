@@ -26,7 +26,6 @@ _HERE       = Path(__file__).resolve().parent.parent
 PIPER_EXE   = _HERE / "piper" / "piper.exe"
 PIPER_MODEL = _HERE / "piper" / "en_US-lessac-medium.onnx"
 
-
 class TTS:
     def __init__(self):
         self.available = PIPER_EXE.exists() and PIPER_MODEL.exists()
@@ -122,7 +121,6 @@ class TTS:
             winsound.PlaySound(wav_path, winsound.SND_FILENAME)
         else:
             os.system("aplay " + wav_path + " 2>/dev/null || afplay " + wav_path + " 2>/dev/null")
-
 
 if __name__ == "__main__":
     # Standalone diagnostic -- mirrors demo.py but TTS only.

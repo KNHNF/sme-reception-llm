@@ -27,7 +27,6 @@ ACTION_TYPES = [
     "end_call",
 ]
 
-
 def _conn():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(DB_PATH)
@@ -46,7 +45,6 @@ def _conn():
     con.commit()
     return con
 
-
 def log_turn(session_id: str, utterance: str, action, validated: bool, latency_ms: float):
     """Call this after every pipeline turn."""
     action_str = None
@@ -61,7 +59,6 @@ def log_turn(session_id: str, utterance: str, action, validated: bool, latency_m
             "VALUES (?,?,?,?,?,?)",
             (time.time(), session_id, utterance, action_str, int(validated), latency_ms),
         )
-
 
 def get_metrics() -> dict:
     """
@@ -115,13 +112,11 @@ def get_metrics() -> dict:
         "recent":      recent,
     }
 
-
 def clear_metrics():
     """Wipe all logged turns (useful for a fresh demo run)."""
     with _conn() as con:
         con.execute("DELETE FROM turns")
     print("[metrics] Cleared.")
-
 
 if __name__ == "__main__":
     import json

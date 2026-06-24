@@ -2,8 +2,7 @@
 
 Offline voice assistant for SME appointment booking. Caller speaks, system books the appointment. No cloud, no GPU required at inference time.
 
-UWE Bristol MSc Data Science — Group 6
-
+UWE Bristol MSc Data Science - Group 6
 
 ## What it does
 
@@ -12,7 +11,6 @@ mic -> Faster-Whisper STT -> spaCy NER -> fine-tuned LLM -> JSON action -> Piper
 ```
 
 Handles booking, cancellations, availability checks, name capture, calendar suggestions, profanity filtering, and end-of-call detection. Runs fully on CPU.
-
 
 ## Eval results
 
@@ -25,14 +23,13 @@ Handles booking, cancellations, availability checks, name capture, calendar sugg
 
 480-sample, 4-condition evaluation. Training: 600 synthetic samples, Kaggle T4, ~60-70 min per model.
 
-
 ## Quick start
 
 ```bash
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 
-# text mode — safest, no audio hardware needed
+# text mode - safest, no audio hardware needed
 python demo.py --text --no-tts
 
 # full voice mode
@@ -47,15 +44,13 @@ uvicorn backend:app --port 5005
 # Metrics dashboard:   http://localhost:5005/metrics-dashboard
 ```
 
-
 ## Streamlit UI
 
-The main demo interface. Imports the pipeline directly — no API server needed.
+The main demo interface. Imports the pipeline directly - no API server needed.
 
 Features: chat bubbles, per-turn action badges (BOOK / CANCEL / AVAIL. / OOS / CLARIFY), latency counter, spaCy entity tags, Piper TTS inline audio playback, model selector (Mock / Phi-3 FT / Llama 3.2 FT), session reset.
 
 Mock mode works on any machine. Fine-tuned models require an NVIDIA GPU.
-
 
 ## File map
 
@@ -75,10 +70,10 @@ data/
   calendar.json         mock 3-week appointment schedule
 
 evaluation/
-  eval_phi3.py          evaluation script — Phi-3 mini
-  eval_llama3.py        evaluation script — Llama 3.2 3B
+  eval_phi3.py          evaluation script - Phi-3 mini
+  eval_llama3.py        evaluation script - Llama 3.2 3B
 
-checkpoints/            QLoRA adapter weights (not in repo — too large for git)
+checkpoints/            QLoRA adapter weights (not in repo - too large for git)
   sme-phi3-qlora/
   sme-llama3-qlora/
 
@@ -88,12 +83,11 @@ demo.py                 end-to-end demo (text or voice, mock or real model)
 test_pipeline.py        smoke + edge case tests (111 checks, mock mode)
 ```
 
-
 ## Conversation flow
 
 1. Greeting: "Thank you for calling. Could I take your name please?"
 2. Name capture: regex strips preambles ("it's / my name is"), spaCy PERSON fallback, spelled names joined (J-A-C-K R-E-A-C-H-E-R -> Jack Reacher)
-3. Name confirmation: "Did I get that as Jack Reacher?" — handles yes / correction / booking intent
+3. Name confirmation: "Did I get that as Jack Reacher?" - handles yes / correction / booking intent
 4. Normal turns: utterance -> spaCy NER -> LLM -> validated JSON action
 5. Availability: suggests next slot ("Thursday 25th June at 9:00 AM. Does that work?")
 6. Caller says yes: books slot, confirmation with ordinal date
@@ -104,7 +98,6 @@ test_pipeline.py        smoke + edge case tests (111 checks, mock mode)
 
 Calendar: Mon-Fri only. Past same-day slots and weekend slots are excluded.
 
-
 ## Testing
 
 ```bash
@@ -113,50 +106,9 @@ python test_pipeline.py
 
 111 checks covering name capture, spelled names, booking intent loop guard, empty/noise/emoji input, profanity 3-strike sequence, out-of-scope requests, date edge cases (past dates, weekends, specific date requests, later-date navigation), slot exhaustion, unknown services, ambiguous confirmation, session reuse after booking, and rapid-fire turns.
 
-
 ## Piper TTS setup
 
 Create a `piper/` folder in the project root and put these two files in it:
 
-1. Piper binary: download from [github.com/rhasspy/piper/releases](https://github.com/rhasspy/piper/releases) — pick the Windows or Linux build
-2. Voice model: download `en_US-lessac-medium.onnx` (and its `.json` config) from [huggingface.co/rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices)
-
-The folder is not in the repo because the ONNX file is 61MB.
-
-
-## Docker
-
-```bash
-docker build -t sme-backend .
-docker run -p 5005:5005 sme-backend
-```
-
-No GPU needed. Image ~500MB.
-
-
-## Stack
-
-Python 3.11, Faster-Whisper, spaCy en_core_web_sm, Phi-3 mini, Llama 3.2 3B, QLoRA/PEFT, BitsAndBytes 4-bit NF4, FastAPI, Pydantic v2, Streamlit, Piper TTS, SQLite, Docker
-
-
-## Models and citations
-
-**Llama 3.2 3B** — Meta AI (2024). [HuggingFace](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct)
-
-**Phi-3 mini** — Abdin et al. (2024). [HuggingFace](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct)
-
-Both are 3-4B parameter instruction-tuned models that quantise to 4-bit NF4 and run on CPU. The research question is whether small offline models, after domain fine-tuning, can replace cloud APIs for structured appointment booking.
-
-**Why not GPT-4 or cloud models?** GDPR prevents sending patient or client data to third-party servers. The offline constraint is the core research contribution.
-
-**QLoRA** — Dettmers et al. (2023). [arXiv:2305.14314](https://arxiv.org/abs/2305.14314) — quantises frozen backbone to 4-bit NF4, trains only low-rank adapter matrices (rank 16, ~4M parameters). Enables fine-tuning a 3B model on a free Kaggle T4 in ~60 min.
-
-**LoRA** — Hu et al. (2022). [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
-
-**Faster-Whisper** — [github.com/SYSTRAN/faster-whisper](https://github.com/SYSTRAN/faster-whisper) — CTranslate2 backend, same Whisper weights, ~4x faster on CPU. STT benchmark on LibriSpeech dev-clean: tiny 17.3% WER, small 8.5% WER.
-
-**Whisper** — Radford et al. (2022). [arXiv:2212.04356](https://arxiv.org/abs/2212.04356)
-
-**spaCy** — Honnibal & Montani (2017). [spacy.io](https://spacy.io/) — `en_core_web_sm`, extracts DATE / TIME / PERSON entities on CPU.
-
-**Piper TTS** — [github.com/rhasspy/piper](https://github.com/rhasspy/piper) — local neural TTS, ONNX runtime, `en_US-lessac-medium` voice. Based on VITS (Kim et al., 2021, [arXiv:2106.06103](https://arxiv.org/abs/2106.06103)).
+1. Piper binary: download from [github.com/rhasspy/piper/releases](https://github.com/rhasspy/piper/releases) - pick the Windows or Linux build
+2. Voice model: download `en_US-lessac-medium.onnx` (and its `.json` config) from [huggingface.co/rhasspy/piper-voices](https://huggingface.co

@@ -31,14 +31,12 @@ DE_ESCALATION = [
     ),
 ]
 
-
 def contains_profanity(text: str) -> bool:
     """Return True if text contains a profanity word."""
     words = set(text.lower().split())
     # also check multi-word phrases
     lower = text.lower()
     return bool(words & _PROFANITY) or "bloody hell" in lower
-
 
 def de_escalate(strike: int) -> str:
     """
@@ -47,7 +45,6 @@ def de_escalate(strike: int) -> str:
     """
     idx = min(strike, len(DE_ESCALATION)) - 1
     return DE_ESCALATION[idx]
-
 
 def is_terminal_strike(strike: int) -> bool:
     """Return True if this strike should end the call."""

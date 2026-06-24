@@ -24,7 +24,6 @@ DEFAULT_MODEL   = "tiny"
 SAMPLE_RATE     = 16000
 CHANNELS        = 1
 
-
 class STT:
     def __init__(self, model_size: str = DEFAULT_MODEL):
         from faster_whisper import WhisperModel
@@ -89,7 +88,6 @@ class STT:
         latency = (time.perf_counter() - t0) * 1000
         print(f"[STT] Transcript ({latency:.0f}ms): {text!r}")
         return text
-
 
 if __name__ == "__main__":
     stt = STT(model_size="tiny")

@@ -27,7 +27,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 from src.inference import Pipeline
 from src.tts import TTS
 
-
 BANNER = """
 =============================================================
   SME Voice Assistant -- Live Demo
@@ -47,7 +46,6 @@ TEST_UTTERANCES = [
     "What are your opening hours?",
 ]
 
-
 def run_turn(pipeline: Pipeline, tts, utterance: str,
              session_id: str, recorder=None) -> bool:
     """Run one pipeline turn. Returns True if the call should end."""
@@ -65,7 +63,6 @@ def run_turn(pipeline: Pipeline, tts, utterance: str,
         recorder.save(audio, result["spoken"])
 
     return result.get("end_call", False)
-
 
 def voice_loop(pipeline: Pipeline, tts, whisper_model: str, recorder=None) -> None:
     from src.stt import STT
@@ -93,7 +90,6 @@ def voice_loop(pipeline: Pipeline, tts, whisper_model: str, recorder=None) -> No
             break
 
     print("\n[Demo ended]")
-
 
 def text_loop(pipeline: Pipeline, tts, recorder=None) -> None:
     session_id = "demo-text"
@@ -128,11 +124,9 @@ def text_loop(pipeline: Pipeline, tts, recorder=None) -> None:
 
     print("\n[Demo ended]")
 
-
 class _SilentTTS:
     def speak(self, text: str):
         return None
-
 
 class _Recorder:
     """Saves each TTS turn to a timestamped WAV in recordings/."""
@@ -152,7 +146,6 @@ class _Recorder:
             print(f"  [Recorded -> {fname.name}]")
         except Exception as e:
             print(f"  [Record failed: {e}]")
-
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()

@@ -8,7 +8,6 @@ from typing import Literal, Optional
 from pydantic import BaseModel, field_validator
 import re
 
-
 # Enums
 
 class ActionType(str, Enum):
@@ -19,12 +18,10 @@ class ActionType(str, Enum):
     out_of_scope       = "out_of_scope"    # caller intent is not appointment-related
     end_call           = "end_call"        # caller said goodbye / wants to hang up
 
-
 class ServiceType(str, Enum):
     general      = "general"       # 30 min
     consultation = "consultation"  # 60 min
     follow_up    = "follow_up"     # 15 min
-
 
 # Action models
 
@@ -39,7 +36,6 @@ class CheckAvailability(BaseModel):
         if v is not None and not re.match(r"^\d{4}-\d{2}-\d{2}$", v):
             raise ValueError("date must be ISO 8601 (YYYY-MM-DD)")
         return v
-
 
 class BookAppointment(BaseModel):
     action:  Literal[ActionType.book_appointment] = ActionType.book_appointment
@@ -61,7 +57,6 @@ class BookAppointment(BaseModel):
             raise ValueError("time must be HH:MM")
         return v
 
-
 class CancelAppointment(BaseModel):
     action:         Literal[ActionType.cancel_appointment] = ActionType.cancel_appointment
     appointment_id: Optional[str] = None  # if caller provides a reference number
@@ -75,19 +70,15 @@ class CancelAppointment(BaseModel):
             raise ValueError("date must be ISO 8601 (YYYY-MM-DD)")
         return v
 
-
 class Clarify(BaseModel):
     action:         Literal[ActionType.clarify] = ActionType.clarify
     missing_fields: list[str]  # e.g. ["date", "service"]
 
-
 class OutOfScope(BaseModel):
     action: Literal[ActionType.out_of_scope] = ActionType.out_of_scope
 
-
 class EndCall(BaseModel):
     action: Literal[ActionType.end_call] = ActionType.end_call
-
 
 # Union type for outlines / lm-format-enforcer
 # Pass this to outlines.generate.json() or build a JSON schema from it.
@@ -109,7 +100,6 @@ ActionOutput = Annotated[
     Field(discriminator="action"),
 ]
 
-
 # JSON schema export (for lm-format-enforcer)
 
 def get_json_schema() -> dict:
@@ -121,7 +111,6 @@ def get_json_schema() -> dict:
     from pydantic import TypeAdapter
     adapter = TypeAdapter(ActionOutput)
     return adapter.json_schema()
-
 
 # Template-based confirmation strings
 # The LLM never generates these. Backend fills them from structured output.
@@ -157,7 +146,6 @@ SERVICE_LABELS = {
     ServiceType.consultation:  ("a consultation",         "60 minutes"),
     ServiceType.follow_up:    ("a follow-up",            "15 minutes"),
 }
-
 
 def render_confirmation(action_obj: BaseModel) -> str:
     """
@@ -223,7 +211,6 @@ def render_confirmation(action_obj: BaseModel) -> str:
         return "Thank you for calling. Have a great day. Goodbye!"
 
     return "I did not quite catch that. Could you repeat?"
-
 
 # Quick smoke test
 

@@ -53,11 +53,9 @@ SERVICE_DURATION = {
     "follow_up":    15,
 }
 
-
 class TurnRequest(BaseModel):
     session_id: str
     utterance: str
-
 
 class BookRequest(BaseModel):
     date: str          # ISO 8601
@@ -65,17 +63,14 @@ class BookRequest(BaseModel):
     service: str       # general | consultation | follow_up
     caller_name: Optional[str] = None
 
-
 class CancelRequest(BaseModel):
     appointment_id: Optional[str] = None
     date: Optional[str] = None
     time: Optional[str] = None
 
-
 class AvailabilityRequest(BaseModel):
     date: str
     service: Optional[str] = "general"
-
 
 # Lazy-load the pipeline so the server starts fast even without a GPU.
 _pipeline = None
@@ -86,7 +81,6 @@ def get_pipeline():
         from src.inference import Pipeline
         _pipeline = Pipeline(mode="mock")
     return _pipeline
-
 
 @app.post("/turn")
 def pipeline_turn(req: TurnRequest):
@@ -127,7 +121,6 @@ def pipeline_turn(req: TurnRequest):
 
     return result
 
-
 @app.get("/metrics")
 def metrics_endpoint():
     """Return conversation metrics: accuracy, latency P50/P95, per-action counts."""
@@ -136,7 +129,6 @@ def metrics_endpoint():
         return get_metrics()
     except Exception as e:
         return {"error": str(e)}
-
 
 @app.post("/metrics/clear")
 def metrics_clear():
@@ -148,14 +140,12 @@ def metrics_clear():
     except Exception as e:
         return {"error": str(e)}
 
-
 @app.get("/metrics-dashboard")
 def metrics_dashboard():
     """Serve the live HTML metrics dashboard."""
     if DASHBOARD_PATH.exists():
         return FileResponse(str(DASHBOARD_PATH), media_type="text/html")
     return JSONResponse({"error": "dashboard.html not found in docs/"}, status_code=404)
-
 
 @app.get("/availability")
 def check_availability(date_str: str, service: str = "general"):
@@ -173,11 +163,9 @@ def check_availability(date_str: str, service: str = "general"):
         "booked":   len(AVAILABLE_SLOTS) - len(free),
     }
 
-
 @app.post("/book")
 def book_appointment(req: BookRequest):
     return _do_book(req.model_dump())
-
 
 def _do_book(data: dict) -> dict:
     date_str = data.get("date")
@@ -206,7 +194,6 @@ def _do_book(data: dict) -> dict:
     }
     return BOOKINGS[appt_id]
 
-
 @app.post("/cancel")
 def cancel_appointment(req: CancelRequest):
     if req.appointment_id:
@@ -228,17 +215,14 @@ def cancel_appointment(req: CancelRequest):
 
     raise HTTPException(status_code=400, detail="Provide appointment_id or date+time")
 
-
 @app.get("/appointments")
 def list_appointments():
     return {"total": len(BOOKINGS), "appointments": list(BOOKINGS.values())}
-
 
 @app.delete("/appointments")
 def clear_appointments():
     BOOKINGS.clear()
     return {"message": "All appointments cleared"}
-
 
 @app.get("/health")
 def health():

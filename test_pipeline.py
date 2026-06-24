@@ -10,7 +10,7 @@ import time
 import traceback
 import uuid
 
-# Windows cp1252 terminals can't print ✓/✗ — force utf-8
+# Windows cp1252 terminals can't print good/bad - force utf-8
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
@@ -22,7 +22,7 @@ FAIL = "\033[91m[FAIL]\033[0m"
 results = []
 
 
-# ── helpers ─────────────────────────────────────────────────────────────────
+# helpers 
 
 def sid():
     return str(uuid.uuid4())
@@ -82,10 +82,10 @@ def run(p, session_id, turns_checks):
         )
 
 
-# ── test groups ──────────────────────────────────────────────────────────────
+# test groups
 
 def test_happy_path(p):
-    print("\n── Happy path ──────────────────────────────────────────────────")
+    print("\n Happy path")
 
     run(p, sid(), [
         ("Hello", {"must_contain": ["name"]}),
@@ -106,9 +106,9 @@ def test_happy_path(p):
 
 
 def test_name_edge_cases(p):
-    print("\n── Name edge cases ─────────────────────────────────────────────")
+    print("\n Name edge cases ")
 
-    # Spelled out: K-A-R-A-N → Karan
+    # Spelled out: K-A-R-A-N -> Karan
     s = sid()
     run(p, s, [
         ("Hello", {}),
@@ -116,7 +116,7 @@ def test_name_edge_cases(p):
         ("Yes", {}),
     ])
 
-    # Two-word spelled: J-A-C-K R-E-A-C-H-E-R → Jack Reacher
+    # Two-word spelled: J-A-C-K R-E-A-C-H-E-R -> Jack Reacher
     s = sid()
     run(p, s, [
         ("Hello", {}),
@@ -160,7 +160,7 @@ def test_name_edge_cases(p):
             "must_not_contain": ["need your name", "still need"],
             "must_contain": ["Reacher"],
         }),
-        # After correction the session is in normal mode — ask for a booking
+        # After correction the session is in normal mode - ask for a booking
         ("I want to book a general appointment", {
             "must_contain": ["Jack Reacher"],   # name should persist
         }),
@@ -176,14 +176,14 @@ def test_name_edge_cases(p):
 
 
 def test_booking_intent_loop(p):
-    print("\n── Booking intent loop guard ───────────────────────────────────")
+    print("\n Booking intent loop guard ")
 
     s = sid()
     run(p, s, [
         ("Hello", {}),
         ("I want to make a consultation", {"must_contain": ["name"]}),
         ("I want to make a consultation", {"must_contain": ["name"]}),
-        # 3rd time: bypass — should NOT ask for name again
+        # 3rd time: bypass - should NOT ask for name again
         ("I want to make a consultation", {"must_not_contain": ["name"]}),
     ])
 
@@ -198,7 +198,7 @@ def test_booking_intent_loop(p):
 
 
 def test_empty_and_noise(p):
-    print("\n── Empty / noise inputs ────────────────────────────────────────")
+    print("\n Empty / noise inputs")
 
     # Empty string
     s = sid()
@@ -244,36 +244,36 @@ def test_empty_and_noise(p):
 
 
 def test_profanity(p):
-    print("\n── Profanity / 3-strike ────────────────────────────────────────")
+    print("\n Profanity / 3-strike")
 
     s = sid()
     spoken1, _ = turn(p, "fucking hell", s)
-    check("strike 1 — gentle redirect", spoken1,
+    check("strike 1 - gentle redirect", spoken1,
           must_contain=["help"], must_not_contain=["goodbye", "unable to continue"])
 
     spoken2, _ = turn(p, "this is bullshit", s)
-    check("strike 2 — firm reminder", spoken2,
+    check("strike 2 - firm reminder", spoken2,
           must_contain=["respectful"], must_not_contain=["goodbye"])
 
     spoken3, _ = turn(p, "you're an asshole", s)
-    check("strike 3 — end call", spoken3,
+    check("strike 3 - end call", spoken3,
           must_contain=["goodbye"])
 
     # After call ends, further input should be handled gracefully (not crash)
     spoken4, _ = turn(p, "hello", s)
-    check("after strike 3 — no crash", spoken4,
+    check("after strike 3 - no crash", spoken4,
           crashed=spoken4.startswith("__CRASH__"))
 
 
 def test_out_of_scope(p):
-    print("\n── Out of scope ────────────────────────────────────────────────")
+    print("\n Out of scope")
 
     s = sid()
     run(p, s, [
         ("Hello", {}),
         ("Ali Hassan", {}),
         ("Yes", {}),
-        # Mock mode is rule-based — "today" triggers date NER so it may offer a slot.
+        # Mock mode is rule-based - "today" triggers date NER so it may offer a slot.
         # The real LLM handles out-of-scope correctly. Just check it doesn't crash.
         ("What's the weather like today?", {}),
         ("Can you recommend a restaurant?", {}),
@@ -290,9 +290,9 @@ def test_out_of_scope(p):
 
 
 def test_date_edge_cases(p):
-    print("\n── Date edge cases ─────────────────────────────────────────────")
+    print("\n Date edge cases")
 
-    # Request a past date — should gracefully offer nearest future slot
+    # Request a past date - should gracefully offer nearest future slot
     s = sid()
     run(p, s, [
         ("Hello", {}),
@@ -305,7 +305,7 @@ def test_date_edge_cases(p):
         }),
     ])
 
-    # Request a weekend — no slots (calendar is Mon-Fri)
+    # Request a weekend - no slots (calendar is Mon-Fri)
     s = sid()
     run(p, s, [
         ("Hello", {}),
@@ -314,13 +314,13 @@ def test_date_edge_cases(p):
         ("book a general appointment", {}),
         ("how about Saturday", {
             # System correctly says no Saturday slots and offers weekday alternative.
-            # "Saturday" appears in the explanation — check the OFFERED slot is a weekday.
+            # "Saturday" appears in the explanation - check the OFFERED slot is a weekday.
             "must_contain": ["don't have", "nearest"],
             "must_not_contain": ["Saturday at"],   # no slot booked on Saturday
         }),
     ])
 
-    # Ordinal suffix in spoken output — no bare day numbers
+    # Ordinal suffix in spoken output - no bare day numbers
     s = sid()
     run(p, s, [
         ("Hello", {}),
@@ -333,7 +333,7 @@ def test_date_edge_cases(p):
 
 
 def test_slot_exhaustion(p):
-    print("\n── Slot exhaustion ─────────────────────────────────────────────")
+    print("\n Slot exhaustion")
 
     s = sid()
     run(p, s, [
@@ -346,19 +346,19 @@ def test_slot_exhaustion(p):
     for i in range(25):
         spoken, _ = turn(p, "no", s)
         if "don't have any more" in spoken.lower() or "call you back" in spoken.lower():
-            check(f"slot exhaustion — graceful after {i+1} rejections", spoken,
+            check(f"slot exhaustion - graceful after {i+1} rejections", spoken,
                   must_contain=["don't have"])
             break
         if spoken.startswith("__CRASH__"):
-            check(f"slot exhaustion — crashed at rejection {i+1}", spoken, crashed=True)
+            check(f"slot exhaustion - crashed at rejection {i+1}", spoken, crashed=True)
             break
     else:
-        check("slot exhaustion — never ran out (possible infinite loop)", "",
+        check("slot exhaustion - never ran out (possible infinite loop)", "",
               must_contain=["this text will never be found"])
 
 
 def test_service_not_in_catalog(p):
-    print("\n── Unknown service ─────────────────────────────────────────────")
+    print("\n Unknown service")
 
     s = sid()
     run(p, s, [
@@ -371,7 +371,7 @@ def test_service_not_in_catalog(p):
 
 
 def test_ambiguous_confirmation(p):
-    print("\n── Ambiguous confirmation in pending_suggestion ─────────────────")
+    print("\n Ambiguous confirmation in pending_suggestion")
 
     s = sid()
     run(p, s, [
@@ -379,14 +379,14 @@ def test_ambiguous_confirmation(p):
         ("Ali Hassan", {}),
         ("Yes", {}),
         ("Book a general appointment", {}),
-        ("maybe", {}),        # neither yes nor no — should not crash or book
+        ("maybe", {}),        # neither yes nor no - should not crash or book
         ("possibly", {}),     # same
         ("yes please", {"must_contain": ["booked"]}),
     ])
 
 
 def test_session_reuse_after_booking(p):
-    print("\n── Session state after completed booking ───────────────────────")
+    print("\n Session state after completed booking")
 
     s = sid()
     run(p, s, [
@@ -395,13 +395,13 @@ def test_session_reuse_after_booking(p):
         ("Yes", {}),
         ("Book a general appointment", {}),
         ("Yes", {"must_contain": ["booked"]}),
-        # After booking, ask another question — session should not crash
+        # After booking, ask another question - session should not crash
         ("I also need a follow-up", {}),
     ])
 
 
 def test_rapid_fire_same_session(p):
-    print("\n── Rapid fire turns (no crashes) ───────────────────────────────")
+    print("\n Rapid fire turns (no crashes)")
 
     s = sid()
     phrases = [
@@ -414,11 +414,11 @@ def test_rapid_fire_same_session(p):
               crashed=spoken.startswith("__CRASH__"))
 
 
-# ── entry point ──────────────────────────────────────────────────────────────
+# entry point 
 
 def main():
-    print("\n=== SME Pipeline — Smoke + Edge Case Tests (Mock mode) ===")
-    print("(spaCy NER required — run from your local machine)\n")
+    print("\n=== SME Pipeline - Smoke + Edge Case Tests (Mock mode) ===")
+    print("(spaCy NER required - run from your local machine)\n")
 
     try:
         from inference import Pipeline
@@ -448,7 +448,7 @@ def main():
     if passed == total:
         print(f"  {PASS} ALL {total} CHECKS PASSED")
     else:
-        print(f"  {FAIL} {passed}/{total} passed — {total - passed} failure(s)")
+        print(f"  {FAIL} {passed}/{total} passed - {total - passed} failure(s)")
     print(f"{'='*60}\n")
     sys.exit(0 if passed == total else 1)
 

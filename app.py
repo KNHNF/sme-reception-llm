@@ -27,7 +27,7 @@ import streamlit as st
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# ── Pipeline loader (cached per mode string) ──────────────────────────────────
+# Pipeline loader (cached per mode string)
 @st.cache_resource(show_spinner="Loading pipeline…")
 def _load_pipeline(mode: str):
     from src.inference import Pipeline
@@ -43,7 +43,7 @@ def _load_tts():
 
 _tts = _load_tts()
 
-# ── API fallback (when embedded import fails) ─────────────────────────────────
+# API fallback (when embedded import fails)
 import requests
 API_URL = "http://localhost:5005"
 
@@ -90,7 +90,6 @@ def audio_html(wav_bytes: bytes) -> str:
         '</audio>'
     )
 
-
 @st.cache_resource(show_spinner=False)
 def _load_stt_model():
     """Load Faster-Whisper for browser mic transcription. Returns None if unavailable."""
@@ -99,7 +98,6 @@ def _load_stt_model():
         return WhisperModel("small", device="cpu", compute_type="int8")
     except Exception:
         return None
-
 
 def transcribe_uploaded_audio(audio_bytes: bytes) -> str | None:
     """Transcribe WAV bytes from st.audio_input using Faster-Whisper."""
@@ -121,7 +119,7 @@ def transcribe_uploaded_audio(audio_bytes: bytes) -> str | None:
         except OSError:
             pass
 
-# ── Page config ───────────────────────────────────────────────────────────────
+# Page config
 st.set_page_config(
     page_title="SME AI Voice Assistant",
     page_icon="📞",
@@ -129,7 +127,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── CSS ───────────────────────────────────────────────────────────────────────
+# CSS
 st.markdown("""
 <style>
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
@@ -185,7 +183,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Model selector options ────────────────────────────────────────────────────
+# Model selector options
 # Modes must match Pipeline(mode=...) in src/inference.py.
 # Fine-tuned options require checkpoints/ adapters on this machine (already present).
 # No Kaggle needed. Kaggle was training only. Running uses the saved adapters locally.
@@ -196,7 +194,7 @@ MODEL_OPTIONS = {
     "Phi-3 mini fine-tuned (98.1%)":    ("phi3",   "pill-ft",   "Phi-3 FT"),
 }
 
-# ── Session state ─────────────────────────────────────────────────────────────
+# Session state
 _DEFAULT_MODEL = "Mock (rule-based, instant)"
 
 def _init():
@@ -225,7 +223,7 @@ def new_session():
             del st.session_state[k]
     _init()
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 BADGES = {
     "book_appointment":   ("book",    "badge-book"),
     "cancel_appointment": ("cancel",  "badge-cancel"),
@@ -243,7 +241,7 @@ def avg_lat():
     lats = st.session_state.latencies
     return sum(lats) / len(lats) if lats else 0
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
+# Sidebar
 with st.sidebar:
     st.markdown("### Model")
     prev_key = st.session_state.model_key
@@ -308,7 +306,7 @@ with st.sidebar:
     if st.button("New call", use_container_width=True, type="secondary"):
         new_session(); st.rerun()
 
-# ── Load pipeline for chosen mode ─────────────────────────────────────────────
+# Load pipeline for chosen mode
 mode_str, pill_cls, pill_label = MODEL_OPTIONS[st.session_state.model_key]
 pipeline = None
 embed_err = None
@@ -324,7 +322,7 @@ def run_turn(utterance, session_id):
         return _embedded_turn(pipeline, utterance, session_id)
     return _api_turn(utterance, session_id)
 
-# ── Header ────────────────────────────────────────────────────────────────────
+# Header
 st.markdown(f"""
 <div class="header-bar">
   <p class="header-title">
@@ -367,7 +365,7 @@ if embed_err:
     else:
         st.error(f"Could not load model: {embed_err}")
 
-# ── Chat area ─────────────────────────────────────────────────────────────────
+# Chat area
 if not st.session_state.messages:
     st.markdown("""<div style="text-align:center;padding:2.5rem;color:#94A3B8">
       <div style="font-size:2rem">📞</div>
@@ -402,7 +400,7 @@ if st.session_state.call_ended:
     st.markdown('<div class="end-banner">Call ended. Click New call to start again.</div>',
                 unsafe_allow_html=True)
 
-# ── Input ─────────────────────────────────────────────────────────────────────
+# Input
 if embed_err and not EMBEDDED:
     st.info("Fix the model error above, then re-select from the sidebar.")
 elif not st.session_state.call_ended:
@@ -417,7 +415,7 @@ elif not st.session_state.call_ended:
     if _stt_model is not None:
         try:
             import hashlib as _hashlib
-            # Key changes each turn → widget reinitialises cleanly, no stale error state
+            # Key changes each turn -> widget reinitialises cleanly, no stale error state
             _mic_key = f"mic_{st.session_state.get('turn_count', 0)}"
             audio_val = st.audio_input("🎤 Speak your message", key=_mic_key)
             if audio_val is not None:

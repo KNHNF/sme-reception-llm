@@ -13,7 +13,6 @@ from typing import Optional
 
 TIMEOUT_SECONDS = 300  # 5 minutes -- clear stale sessions
 
-
 @dataclass
 class Session:
     session_id: str
@@ -56,17 +55,14 @@ class Session:
         self.suggestion_index = 0
         self.turn_count = 0
 
-
 TERMINAL_ACTIONS = {"book_appointment", "cancel_appointment", "out_of_scope"}
 
 _sessions: dict[str, Session] = {}
-
 
 def get_or_create(session_id: str) -> Session:
     if session_id not in _sessions or _sessions[session_id].is_expired():
         _sessions[session_id] = Session(session_id=session_id)
     return _sessions[session_id]
-
 
 def update(session_id: str, llm_output: dict, entities: dict) -> dict:
     """
@@ -100,7 +96,6 @@ def update(session_id: str, llm_output: dict, entities: dict) -> dict:
     # check_availability does not clear the session.
     return llm_output
 
-
 def get_context(session_id: str) -> dict:
     """
     Return partial entities already collected for this session.
@@ -114,18 +109,15 @@ def get_context(session_id: str) -> dict:
         "turn":             session.turn_count,
     }
 
-
 def close(session_id: str):
     """Explicitly close and remove a session (e.g. caller hung up)."""
     _sessions.pop(session_id, None)
-
 
 def _purge_expired():
     """Remove all expired sessions. Call periodically if running long."""
     expired = [sid for sid, s in _sessions.items() if s.is_expired()]
     for sid in expired:
         del _sessions[sid]
-
 
 if __name__ == "__main__":
     sid = "test-session-001"

@@ -45,7 +45,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 _SCRIPT_DIR  = Path(__file__).resolve().parent
 _PROJECT_DIR = _SCRIPT_DIR.parent
 
-
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--mode",           default="both",
@@ -83,7 +82,6 @@ def parse_args():
 
     return args
 
-
 # Model loading
 
 def load_tokenizer(model_id: str):
@@ -91,7 +89,6 @@ def load_tokenizer(model_id: str):
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
     return tok
-
 
 def load_vanilla_model(model_id: str, use_4bit: bool):
     bnb = None
@@ -112,14 +109,12 @@ def load_vanilla_model(model_id: str, use_4bit: bool):
     model.eval()
     return model
 
-
 def load_finetuned_model(model_id: str, adapter_path: str, use_4bit: bool):
     from peft import PeftModel
     base = load_vanilla_model(model_id, use_4bit)
     model = PeftModel.from_pretrained(base, adapter_path)
     model.eval()
     return model
-
 
 # Prompt formatting 
 # Must match the format used in training exactly.
@@ -139,7 +134,6 @@ def format_prompt(record: dict, model_family: str = "phi3") -> str:
         f"<|user|>\n{record['input']}<|end|>\n"
         f"<|assistant|>\n"
     )
-
 
 # Single inference
 
@@ -175,7 +169,6 @@ def run_inference_hf(
     text = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
     return text, latency_ms
 
-
 def run_inference_ollama(
     model_name: str,
     prompt: str,
@@ -208,7 +201,6 @@ def run_inference_ollama(
     text = data.get("response", "").strip()
     return text, latency_ms
 
-
 # JSON parsing and field comparison 
 
 def parse_output(text: str) -> Optional[dict]:
@@ -226,7 +218,6 @@ def parse_output(text: str) -> Optional[dict]:
         return json.loads(text[start:end + 1])
     except json.JSONDecodeError:
         return None
-
 
 def compare_outputs(predicted: Optional[dict], expected: dict) -> dict:
     """
@@ -274,7 +265,6 @@ def compare_outputs(predicted: Optional[dict], expected: dict) -> dict:
         "exact_match":    exact_match,
         "field_details":  field_details,
     }
-
 
 # Evaluation loop 
 
@@ -358,7 +348,6 @@ def evaluate(
 
     return {"summary": summary, "per_sample": per_sample}
 
-
 # Main
 
 def main():
@@ -433,7 +422,6 @@ def main():
         json.dump(all_summaries, f, indent=2)
     print(f"\nResults written to {out_dir}/")
 
-
 # Pretty printing
 
 def print_summary(s: dict):
@@ -452,7 +440,6 @@ def print_summary(s: dict):
               f"exact={stats['exact_match']:.0%}  "
               f"lat={stats['mean_latency_ms']:.0f}ms")
 
-
 def print_comparison_table(summaries: list[dict]):
     col_w = 26
     header = f"{'Metric':<30}" + "".join(f"{s['label']:<{col_w}}" for s in summaries)
@@ -470,7 +457,6 @@ def print_comparison_table(summaries: list[dict]):
     for label, fn in rows:
         row = f"{label:<30}" + "".join(f"{fn(s):<{col_w}}" for s in summaries)
         print(row)
-
 
 if __name__ == "__main__":
     main()

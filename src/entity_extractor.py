@@ -25,7 +25,6 @@ SERVICE_KEYWORDS = [
 
 WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
-
 def extract(text: str, today: Optional[date] = None) -> dict:
     """
     Run spaCy NER on the utterance and return a dict of resolved entities.
@@ -69,7 +68,6 @@ def extract(text: str, today: Optional[date] = None) -> dict:
 
     return result
 
-
 def to_prompt_context(entities: dict) -> str:
     """
     Format extracted entities as a short context string to prepend to the
@@ -95,7 +93,6 @@ def to_prompt_context(entities: dict) -> str:
     if not parts:
         return ""
     return "[Extracted: " + ", ".join(parts) + "]"
-
 
 def _resolve_date(text: str, today: date) -> Optional[str]:
     t = text.lower().strip()
@@ -138,7 +135,6 @@ def _resolve_date(text: str, today: date) -> Optional[str]:
     except (ValueError, OverflowError):
         return None
 
-
 def _resolve_time(text: str) -> Optional[str]:
     try:
         default_dt = datetime(2000, 1, 1)
@@ -146,7 +142,6 @@ def _resolve_time(text: str) -> Optional[str]:
         return t.strftime("%H:%M")
     except (ValueError, OverflowError):
         return None
-
 
 if __name__ == "__main__":
     samples = [

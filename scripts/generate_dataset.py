@@ -54,7 +54,6 @@ def natural_time(hhmm: str) -> str:
     t = datetime.strptime(hhmm, "%H:%M")
     return t.strftime("%I:%M %p").lstrip("0").lower()
 
-
 # Utterance templates
 
 def make_book_utterance(d: str, t: str, service: str) -> str:
@@ -90,7 +89,6 @@ def make_book_utterance(d: str, t: str, service: str) -> str:
     ]
     return random.choice(templates)
 
-
 def make_check_utterance(d: str, service: str) -> str:
     wd = weekday_name(d)
     md = month_day(d)
@@ -111,7 +109,6 @@ def make_check_utterance(d: str, service: str) -> str:
         f"Do you have a slot {svc} around {md}?",
     ]
     return random.choice(templates)
-
 
 def make_cancel_utterance(d: str = None, t: str = None, appt_id: str = None) -> str:
     if appt_id:
@@ -140,7 +137,6 @@ def make_cancel_utterance(d: str = None, t: str = None, appt_id: str = None) -> 
             "Cancel my appointment.",
         ]
     return random.choice(templates)
-
 
 def make_clarify_utterance(missing: list) -> str:
     """Utterances that are vague -- missing key fields."""
@@ -175,7 +171,6 @@ def make_clarify_utterance(missing: list) -> str:
         templates = ["I need to book something."]
     return random.choice(templates)
 
-
 def make_out_of_scope_utterance() -> str:
     templates = [
         "What are your opening hours?",
@@ -190,7 +185,6 @@ def make_out_of_scope_utterance() -> str:
         "I'd like to make a complaint.",
     ]
     return random.choice(templates)
-
 
 # Sample builders
 
@@ -207,7 +201,6 @@ def book_sample():
     }
     return utterance, output
 
-
 def check_sample():
     d = rand_date()
     service = random.choice(["general", "consultation", "follow_up"])
@@ -219,7 +212,6 @@ def check_sample():
     }
     return utterance, output
 
-
 def cancel_with_id_sample():
     appt_id = f"APT-{random.randint(1000, 9999)}"
     utterance = make_cancel_utterance(appt_id=appt_id)
@@ -228,7 +220,6 @@ def cancel_with_id_sample():
         "appointment_id": appt_id,
     }
     return utterance, output
-
 
 def cancel_with_datetime_sample():
     d = rand_date()
@@ -240,7 +231,6 @@ def cancel_with_datetime_sample():
         "time": t,
     }
     return utterance, output
-
 
 def clarify_sample():
     # Randomly choose which fields are missing
@@ -258,12 +248,10 @@ def clarify_sample():
     }
     return utterance, output
 
-
 def out_of_scope_sample():
     utterance = make_out_of_scope_utterance()
     output = {"action": "out_of_scope"}
     return utterance, output
-
 
 # Dataset composition
 # Target: ~600 training samples, balanced across intents.
@@ -288,7 +276,6 @@ GENERATORS = {
     "out_of_scope":     out_of_scope_sample,
 }
 
-
 def build_record(utterance: str, output: dict) -> dict:
     """Alpaca-style instruction-tuning record."""
     return {
@@ -296,7 +283,6 @@ def build_record(utterance: str, output: dict) -> dict:
         "input":       utterance,
         "output":      json.dumps(output, ensure_ascii=False),
     }
-
 
 def generate_dataset():
     all_records = []
@@ -336,7 +322,6 @@ def generate_dataset():
     print("Sample (first 3):")
     for rec in all_records[:3]:
         print(json.dumps(rec, indent=2))
-
 
 if __name__ == "__main__":
     generate_dataset()

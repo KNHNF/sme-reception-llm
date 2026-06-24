@@ -33,7 +33,6 @@ from transformers import (
 )
 from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
 
-
 # Args
 
 def parse_args():
@@ -54,7 +53,6 @@ def parse_args():
                    help="Merge LoRA weights into base model after training")
     return p.parse_args()
 
-
 # Quantisation config
 
 def get_bnb_config() -> BitsAndBytesConfig:
@@ -64,7 +62,6 @@ def get_bnb_config() -> BitsAndBytesConfig:
         bnb_4bit_compute_dtype=torch.bfloat16,
         bnb_4bit_use_double_quant=True,     # nested quantisation, saves ~0.4 GB
     )
-
 
 # LoRA config
 # Target modules for Phi-3 mini attention layers.
@@ -86,7 +83,6 @@ def get_lora_config(args) -> LoraConfig:
         inference_mode=False,
     )
 
-
 # Dataset formatting
 # Phi-3 uses a specific chat template. We format each record into it so the
 # model learns to produce output in the same format used at inference time.
@@ -101,12 +97,10 @@ def format_record(record: dict) -> str:
         f"<|assistant|>\n{record['output']}<|end|>"
     )
 
-
 def load_and_format(path: str):
     ds = load_dataset("json", data_files=path, split="train")
     ds = ds.map(lambda x: {"text": format_record(x)})
     return ds
-
 
 # Main
 
@@ -244,7 +238,6 @@ def main():
         merged.save_pretrained(merged_path)
         tokenizer.save_pretrained(merged_path)
         print(f"Merged model saved to {merged_path}")
-
 
 if __name__ == "__main__":
     main()

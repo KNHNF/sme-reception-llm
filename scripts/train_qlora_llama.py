@@ -39,7 +39,6 @@ from transformers import (
 )
 from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
 
-
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--model_id",   default="meta-llama/Llama-3.2-3B-Instruct")
@@ -57,7 +56,6 @@ def parse_args():
     p.add_argument("--merge_and_save", action="store_true")
     return p.parse_args()
 
-
 def get_bnb_config():
     return BitsAndBytesConfig(
         load_in_4bit=True,
@@ -66,13 +64,11 @@ def get_bnb_config():
         bnb_4bit_use_double_quant=True,
     )
 
-
 # Llama 3 attention projection layers -- same names as Phi-3
 LLAMA3_TARGET_MODULES = [
     "q_proj", "k_proj", "v_proj", "o_proj",
     "gate_proj", "up_proj", "down_proj",
 ]
-
 
 def get_lora_config(args):
     return LoraConfig(
@@ -84,7 +80,6 @@ def get_lora_config(args):
         bias="none",
         inference_mode=False,
     )
-
 
 def format_record_llama3(record: dict) -> str:
     """
@@ -113,12 +108,10 @@ def format_record_llama3(record: dict) -> str:
         f"{record['output']}<|eot_id|>"
     )
 
-
 def load_and_format(path: str):
     ds = load_dataset("json", data_files=path, split="train")
     ds = ds.map(lambda x: {"text": format_record_llama3(x)})
     return ds
-
 
 def main():
     args = parse_args()
@@ -238,7 +231,6 @@ def main():
         merged.save_pretrained(merged_path)
         tokenizer.save_pretrained(merged_path)
         print(f"Merged model saved to {merged_path}")
-
 
 if __name__ == "__main__":
     main()

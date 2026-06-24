@@ -149,7 +149,7 @@ Then open http://localhost:5005/docs to see all endpoints.
 ### Timeline
 - February/March 2026: Project kickoff, literature review, Trello used for task tracking
 - March 2026: Two team meetings (dates), proposal drafted in Notion
-- April–May 2026: STT pipeline developed, GitLab repo set up
+- April-May 2026: STT pipeline developed, GitLab repo set up
 - June 2026: Switched to Microsoft Teams for communication, LLM pipeline built,
   fine-tuning completed on Kaggle, evaluation done
 - July 2026: Website integration, demo preparation, wiki completion
