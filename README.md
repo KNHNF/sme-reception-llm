@@ -33,7 +33,7 @@ Handles: booking, cancellations, availability checks, name capture, calendar sug
 ## Quick start
 
 ```bash
-# Install (one time — already done on Karan's machine)
+# Install (one time - already done on Karan's machine)
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 
@@ -58,7 +58,7 @@ src/
   inference.py          Pipeline class: profanity → name → slot confirm → LLM
   entity_extractor.py   spaCy NER: DATE, TIME, SERVICE, PERSON
   session_manager.py    In-memory session: name, partial_action, confusion_count
-  sme_action_schema.py  Pydantic v2 discriminated union — 6 action types
+  sme_action_schema.py  Pydantic v2 discriminated union - 6 action types
   stt.py                Faster-Whisper microphone capture
   tts.py                Piper TTS subprocess wrapper (dual-flag, detailed errors)
   profanity.py          3-strike keyword filter + de-escalation
@@ -70,24 +70,24 @@ data/
   metrics.db            Auto-created on first /turn call (gitignored)
 
 evaluation/
-  eval_phi3.py          Evaluation script — Phi-3 mini
-  eval_llama3.py        Evaluation script — Llama 3.2 3B
+  eval_phi3.py          Evaluation script - Phi-3 mini
+  eval_llama3.py        Evaluation script - Llama 3.2 3B
 
-checkpoints/            QLoRA adapter weights (gitignored — too large)
+checkpoints/            QLoRA adapter weights (gitignored - too large)
   sme-phi3-qlora/
   sme-llama3-qlora/
 
-docs/                   (gitignored — private viva notes, paper, diagrams)
+docs/                   (gitignored - private viva notes, paper, diagrams)
   SME_Viva_v3.pptx          12-slide 5-min mock viva deck (current)
   pipeline_flowchart.html   Interactive pipeline + 39 papers mapped
   paper_final.html          Academic paper, 38 citations, SVG result charts
   dashboard.html            Live metrics dashboard (Chart.js, auto-refresh 5s)
-  CallFlow_Emails.md        Email drafts — Iheanyi Ibe + Mark Corderoy
+  CallFlow_Emails.md        Email drafts - Iheanyi Ibe + Mark Corderoy
   VIVA_GUIDE.md             Slide-by-slide viva guide
   PROJECT_FULL.md           Full technical reference
   BUGS_AND_FIXES.md         Dev issues log
 
-backend.py              FastAPI app — /turn, /book, /cancel, /availability,
+backend.py              FastAPI app - /turn, /book, /cancel, /availability,
                         /metrics, /metrics/clear, /metrics-dashboard
 demo.py                 End-to-end demo (text or voice, mock or real model)
 ```
@@ -98,7 +98,7 @@ demo.py                 End-to-end demo (text or voice, mock or real model)
 
 1. Turn 0: greeting + "Could I take your name please?"
 2. Turn 1: name captured (regex strips "it's / I'm / my name is" preamble)
-3. Turn 2: name confirmation ("Did I get that as X?") — yes/no/correction handled
+3. Turn 2: name confirmation ("Did I get that as X?") - yes/no/correction handled
 4. Normal turns: utterance → spaCy NER → LLM → JSON action
 5. `check_availability` → `calendar_store` → "Next slot is X, does that work?"
 6. Caller says yes → `book_slot()` → confirmation with name
@@ -122,10 +122,10 @@ No GPU needed. Image ~500MB.
 
 ## Do NOT re-run
 
-- `pip install` / `spacy download` — already done
-- Training — checkpoints already saved
-- Evaluation — 480-sample results already in `evaluation/`
-- PPTX generation — use `docs/SME_Viva_v3.pptx` (12 slides, current)
+- `pip install` / `spacy download` - already done
+- Training - checkpoints already saved
+- Evaluation - 480-sample results already in `evaluation/`
+- PPTX generation - use `docs/SME_Viva_v3.pptx` (12 slides, current)
 
 ---
 

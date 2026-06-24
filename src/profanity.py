@@ -1,7 +1,7 @@
 """
 Profanity detection and de-escalation.
 
-Lightweight keyword-based filter — no external library needed.
+Lightweight keyword-based filter - no external library needed.
 The pipeline checks this BEFORE the LLM so no GPU call is wasted on an abusive turn.
 
 Three-strike rule:

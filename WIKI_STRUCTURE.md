@@ -1,4 +1,4 @@
-# IGP Wiki Structure — Blackboard Pages
+# IGP Wiki Structure - Blackboard Pages
 # Copy each section below as a separate Blackboard wiki page.
 # Each person logs into Blackboard and edits their own section.
 # Blackboard tracks who wrote what automatically.
@@ -57,7 +57,7 @@ fine-tuned on available hardware (Kaggle T4 = 16GB). The 3B models fit within
 
 ---
 
-## PAGE 3: Technical Implementation — STT Pipeline
+## PAGE 3: Technical Implementation - STT Pipeline
 **Who writes this:** Karan
 
 ### What It Does
@@ -70,11 +70,11 @@ implementation of OpenAI Whisper). The output feeds directly into the LLM pipeli
 - WER evaluation done on LibriSpeech dataset
 
 ### Issues Encountered
-[Paste from your Issues and Fixes doc — section 1]
+[Paste from your Issues and Fixes doc - section 1]
 
 ---
 
-## PAGE 4: Technical Implementation — LLM Pipeline
+## PAGE 4: Technical Implementation - LLM Pipeline
 **Who writes this:** Karan
 
 ### Architecture
@@ -83,8 +83,8 @@ utterance -> spaCy entity extractor -> system prompt builder -> LLM -> JSON vali
 ```
 
 ### Models Used
-- Phi-3 mini 3.8B (Microsoft) — chat template uses <|system|>, <|user|>, <|assistant|>
-- Llama 3.2 3B (Meta) — chat template uses <|begin_of_text|>, header tokens
+- Phi-3 mini 3.8B (Microsoft) - chat template uses <|system|>, <|user|>, <|assistant|>
+- Llama 3.2 3B (Meta) - chat template uses <|begin_of_text|>, header tokens
 
 ### Fine-tuning Method: QLoRA
 - Base models loaded in 4-bit NF4 quantisation (bitsandbytes)
@@ -113,7 +113,7 @@ Fine-tuning with 480 samples improved action accuracy from near-zero to 98-99%.
 
 ---
 
-## PAGE 5: Technical Implementation — Backend API
+## PAGE 5: Technical Implementation - Backend API
 **Who writes this:** Karan
 
 ### What It Does
@@ -121,12 +121,12 @@ FastAPI server that receives customer utterances and returns spoken confirmation
 The website team connects their frontend to this.
 
 ### Endpoints
-- POST /turn — main endpoint, takes utterance, returns action + spoken text
-- GET /availability — check available slots
-- POST /book — book an appointment
-- POST /cancel — cancel an appointment
-- GET /health — server health check
-- GET /docs — Swagger UI (auto-generated)
+- POST /turn - main endpoint, takes utterance, returns action + spoken text
+- GET /availability - check available slots
+- POST /book - book an appointment
+- POST /cancel - cancel an appointment
+- GET /health - server health check
+- GET /docs - Swagger UI (auto-generated)
 
 ### How to Run
 ```
@@ -163,11 +163,11 @@ Then open http://localhost:5005/docs to see all endpoints.
 - UWE OneDrive: Large files (LibriSpeech audio, PDF articles)
 
 ### Meeting Notes
-**March [date] — Meeting 1**
+**March [date] - Meeting 1**
 Attendees: [names]
 Discussed: [what was decided]
 
-**March [date] — Meeting 2**
+**March [date] - Meeting 2**
 Attendees: [names]
 Discussed: [what was decided]
 
@@ -180,15 +180,15 @@ Key decisions documented in Teams channel (screenshots below).
 ## PAGE 8: Issues and Fixes Log
 **Who writes this:** Karan (you have this drafted already)
 
-[Paste your Issues and Fixes doc here — the one you wrote above]
+[Paste your Issues and Fixes doc here - the one you wrote above]
 
 ---
 
 ## PAGE 9: Individual Reflections
-**Who writes this:** Each person writes their own entry — DO NOT write each other's
+**Who writes this:** Each person writes their own entry - DO NOT write each other's
 
 ### Karan's Reflection
-[Write this yourself — what you learned, what was hard, what you would do differently]
+[Write this yourself - what you learned, what was hard, what you would do differently]
 
 ### [Team member name]'s Reflection
 [They write their own]

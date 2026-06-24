@@ -203,15 +203,15 @@ def render_confirmation(action_obj: BaseModel) -> str:
 
     elif a == ActionType.clarify:
         field_hints = {
-            "time":    "what time you would like — for example, '10am' or '2:30pm'",
-            "date":    "which date you would like — for example, 'this Monday' or 'June 30th'",
-            "service": "what type of appointment — general, consultation, or follow-up",
+            "time":    "what time you would like - for example, '10am' or '2:30pm'",
+            "date":    "which date you would like - for example, 'this Monday' or 'June 30th'",
+            "service": "what type of appointment - general, consultation, or follow-up",
         }
         prompts = []
         for f in action_obj.missing_fields:
             prompts.append(field_hints.get(f, f))
         joined = " and ".join(prompts)
-        return f"Of course — could you also let me know {joined}?"
+        return f"Of course - could you also let me know {joined}?"
 
     elif a == ActionType.out_of_scope:
         return (

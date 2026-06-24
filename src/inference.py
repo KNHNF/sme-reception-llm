@@ -229,9 +229,16 @@ class Pipeline:
         t0 = time.perf_counter()
         session = sm.get_or_create(session_id)
 
-        # ------------------------------------------------------------------
-        # 0. Profanity gate — runs before anything else
-        # ------------------------------------------------------------------
+        # 0a. Empty / silent input guard
+        if not utterance or not utterance.strip():
+            spoken = "I'm sorry, I didn't catch that. Could you say that again?"
+            return self._quick("", spoken, False, session, t0)
+
+        # Cap input length - very long utterances can cause latency spikes or
+        # overflow the model's context window.
+        utterance = utterance[:500].strip()
+
+        # 0b. Profanity gate - runs before anything else
         if contains_profanity(utterance):
             session.profanity_strikes += 1
             session.touch()
@@ -239,9 +246,44 @@ class Pipeline:
             end_call = is_terminal_strike(session.profanity_strikes)
             return self._quick(utterance, spoken, end_call, session, t0)
 
-        # ------------------------------------------------------------------
-        # 1. Name collection — intercept the first two turns
-        # ------------------------------------------------------------------
+        # 0c. Human transfer request
+        # If caller asks to speak to a real person, acknowledge and route out.
+        # In a deployed system this would trigger a SIP transfer; in the demo
+        # it closes the session and sets end_call so the loop terminates cleanly.
+        _u = utterance.lower()
+        _TRANSFER = {
+            "speak to someone", "speak to a person", "real person", "actual person",
+            "speak to staff", "member of staff", "speak to the team",
+            "transfer me", "talk to someone", "talk to a person",
+            "human", "operator", "receptionist please",
+        }
+        if any(t in _u for t in _TRANSFER):
+            sm.close(session_id)
+            spoken = (
+                "Of course - I'll transfer you to a member of our team now. "
+                "Please hold for a moment."
+            )
+            return self._quick(utterance, spoken, True, session, t0)
+
+        # 0d. Distress / emergency detection
+        # Do NOT escalate these through the booking flow - acknowledge
+        # urgency immediately.
+        _DISTRESS = {
+            "emergency", "it's urgent", "its urgent", "urgent appointment",
+            "not well", "feeling unwell", "very unwell", "in pain", "severe pain",
+            "chest pain", "can't breathe", "cannot breathe", "ambulance",
+            "collapsed", "unconscious", "help me please",
+        }
+        if any(d in _u for d in _DISTRESS):
+            spoken = (
+                "I can hear this may be urgent. For a medical emergency, "
+                "please hang up and call 999 immediately. "
+                "If you need the next available appointment, "
+                "say 'I need an urgent appointment' and I'll find you a slot right now."
+            )
+            return self._quick(utterance, spoken, False, session, t0)
+
+        # 1. Name collection - intercept the first two turns
         if session.awaiting_name:
             # Whatever the caller said IS their name. Prefer spaCy PERSON if found.
             entities = extract(utterance)
@@ -263,7 +305,7 @@ class Pipeline:
             session.awaiting_name_confirm = True
             session.touch()
             spoken = (
-                f"Thank you. Just to confirm — did I catch that correctly as {name}?"
+                f"Thank you. Just to confirm - did I catch that correctly as {name}?"
             )
             return self._quick(utterance, spoken, False, session, t0)
 
@@ -282,7 +324,7 @@ class Pipeline:
                     f"I can help with booking, cancellations, or checking availability."
                 )
             else:
-                # They're correcting — re-capture from this utterance
+                # They're correcting - re-capture from this utterance
                 import re as _re2
                 match2 = _re2.search(
                     r"(?:it'?s|i'?m|this is|my name is|name'?s|actually|call me)\s+"
@@ -299,7 +341,7 @@ class Pipeline:
             return self._quick(utterance, spoken, False, session, t0)
 
         if session.turn_count == 0 and session.caller_name is None:
-            # First turn — greet and capture name
+            # First turn - greet and capture name
             session.awaiting_name = True
             session.touch()
             spoken = (
@@ -309,9 +351,7 @@ class Pipeline:
             )
             return self._quick(utterance, spoken, False, session, t0)
 
-        # ------------------------------------------------------------------
-        # 2. Pending slot confirmation — caller said yes/no to a suggestion
-        # ------------------------------------------------------------------
+        # 2. Pending slot confirmation - caller said yes/no to a suggestion
         if session.pending_suggestion:
             u = utterance.lower()
             yes_words = {"yes", "yeah", "yep", "sure", "ok", "okay", "please",
@@ -353,9 +393,7 @@ class Pipeline:
                     )
                     return self._quick(utterance, spoken, False, session, t0)
 
-        # ------------------------------------------------------------------
         # 3. Normal LLM inference
-        # ------------------------------------------------------------------
         entities = extract(utterance)
         prompt   = build_prompt(utterance, entities, partial_context, self.model_family)
 
@@ -371,9 +409,7 @@ class Pipeline:
         parsed    = parse_llm_output(raw_text)
         validated = validate_action(parsed)
 
-        # ------------------------------------------------------------------
         # 4. Post-processing: enrich check_availability with a real suggestion
-        # ------------------------------------------------------------------
         if validated and validated.action.value == "check_availability":
             preferred_date = getattr(validated, "date", None)
             service        = getattr(validated, "service", None)
@@ -407,16 +443,16 @@ class Pipeline:
                     "I'm sorry, I'm having trouble understanding. "
                     "Could you try saying the date like 'Tuesday the 8th', "
                     "the time like '10am' or '2:30pm', "
-                    "and the type — general, consultation, or follow-up?"
+                    "and the type - general, consultation, or follow-up?"
                 )
             elif c == 3:
                 spoken = (
                     "I'm still not quite catching that. "
-                    "Let me try once more — please say something like: "
+                    "Let me try once more - please say something like: "
                     "'Book a general appointment on Monday at 10am.'"
                 )
             else:
-                # 4th failure — end call gracefully
+                # 4th failure - end call gracefully
                 spoken = (
                     "I'm afraid I'm not able to assist further on this call. "
                     "Please call back during office hours and a member of our team will be happy to help. "
@@ -535,7 +571,7 @@ class Pipeline:
                                    "thats all", "no thanks", "nothing else", "have a good"]):
             return json.dumps({"action": "end_call"})
 
-        # Confused re-asks after a clarify — treat as continued booking intent
+        # Confused re-asks after a clarify - treat as continued booking intent
         if u.strip() in ("what time", "what date", "what service", "what appointment",
                           "what?", "sorry?", "pardon?", "excuse me", "i don't understand"):
             return json.dumps({"action": "clarify", "missing_fields": ["time"]})
@@ -543,56 +579,3 @@ class Pipeline:
         if any(w in u for w in ["cancel", "cancellation"]):
             return json.dumps({"action": "cancel_appointment", "date": date, "time": time})
 
-        if any(w in u for w in ["available", "availability", "free", "open", "possible"]):
-            return json.dumps({"action": "check_availability", "date": date, "service": svc})
-
-        # If we're in a clarification turn for booking, treat any time/date response as continuation
-        if session and getattr(session, "partial_action", None) == "book_appointment":
-            if entities.get("time_resolved") or entities.get("date_resolved"):
-                # Merge session service if caller didn't repeat it
-                svc = svc or (session.partial_entities.get("service") or "general")
-                return json.dumps({"action": "book_appointment", "date": date, "time": time, "service": svc})
-
-        if any(w in u for w in ["book", "schedule", "appointment", "come in", "consultation"]):
-            if not entities.get("time_resolved"):
-                return json.dumps({"action": "clarify", "missing_fields": ["time"]})
-            return json.dumps({"action": "book_appointment", "date": date, "time": time, "service": svc})
-
-        return json.dumps({"action": "out_of_scope"})
-
-
-if __name__ == "__main__":
-    p = argparse.ArgumentParser()
-    p.add_argument("--mock",         action="store_true")
-    p.add_argument("--vanilla",      action="store_true")
-    p.add_argument("--adapter",      default=None)
-    p.add_argument("--model",        default="phi3", choices=["phi3", "llama3", "ollama"])
-    p.add_argument("--ollama_model", default="llama3.2")
-    p.add_argument("--ollama_url",   default="http://localhost:11434")
-    args = p.parse_args()
-
-    if args.model == "ollama":
-        pipeline = Pipeline(mode="ollama", model_family="llama3",
-                            ollama_model=args.ollama_model, ollama_url=args.ollama_url)
-    elif args.mock or (not args.vanilla and not args.adapter):
-        pipeline = Pipeline(mode="mock", model_family=args.model)
-    elif args.vanilla:
-        pipeline = Pipeline(mode="vanilla", model_family=args.model)
-    else:
-        pipeline = Pipeline(mode="finetuned", model_family=args.model, adapter_path=args.adapter)
-
-    test_utterances = [
-        "I want to book a consultation for tomorrow at 3pm.",
-        "Do you have any slots for a general appointment on Monday?",
-        "I need to cancel my appointment on Wednesday at 10am.",
-        "Book me in for a follow-up.",
-        "What are your opening hours?",
-    ]
-
-    for utt in test_utterances:
-        print(f"\nInput: {utt}")
-        result = pipeline.run(utt)
-        print(f"Action:    {result['action']}")
-        print(f"Valid:     {result['validated']}")
-        print(f"Spoken:    {result['spoken']}")
-        print(f"Latency:   {result['latency_ms']} ms")

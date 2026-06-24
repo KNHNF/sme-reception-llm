@@ -54,7 +54,7 @@ def find_slots(
 
     Args:
         service: ServiceType string ("general", "consultation", "follow_up") or None for any.
-        preferred_date: ISO date string "YYYY-MM-DD" — if given, prefer this date first.
+        preferred_date: ISO date string "YYYY-MM-DD" - if given, prefer this date first.
         skip: Skip the first N matching slots (for "suggest the next one").
 
     Returns:
@@ -100,7 +100,7 @@ def describe_slot(slot: dict) -> str:
 
 def book_slot(date: str, time: str, service: str) -> bool:
     """
-    Mark a slot as booked (sets available=False in memory only — mock).
+    Mark a slot as booked (sets available=False in memory only - mock).
     In production this would write to a database.
     Returns True if the slot was found and booked.
     """
