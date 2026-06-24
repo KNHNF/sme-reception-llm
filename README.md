@@ -97,15 +97,18 @@ demo.py                 End-to-end demo (text or voice, mock or real model)
 ## Conversation flow
 
 1. Turn 0: greeting + "Could I take your name please?"
-2. Turn 1: name captured (regex strips "it's / I'm / my name is" preamble)
-3. Turn 2: name confirmation ("Did I get that as X?") - yes/no/correction handled
+2. Turn 1: name captured — regex strips preambles ("it's / I'm / my name is"), spaCy PERSON fallback, spelled-name join (K-A-R-A-N → Karan, J-A-C-K R-E-A-C-H-E-R → Jack Reacher)
+3. Turn 2: name confirmation ("Did I get that as X?") — yes/no/correction/booking-intent all handled; booking intent re-asks (max 2 times then bypasses with placeholder)
 4. Normal turns: utterance → spaCy NER → LLM → JSON action
 5. `check_availability` → `calendar_store` → "Next slot is X, does that work?"
-6. Caller says yes → `book_slot()` → confirmation with name
-7. Caller says no → suggest next slot
-8. Confusion escalation: 4-step retry with format hints, ends call on 4th failure
-9. Profanity: 3-strike, ends call on strike 3
-10. "bye / goodbye / thanks" → `end_call` → loop terminates
+6. Caller says yes → `book_slot()` → ordinal date confirmation ("Thursday 25th June")
+7. Caller says no → suggest next slot (same day) or next day if "later date / another day"
+8. Caller requests specific date → NER + ordinal regex fallback → "nothing on the 24th, nearest is..."
+9. Confusion escalation: 4-step retry with format hints, ends call on 4th failure
+10. Profanity: 3-strike, ends call on strike 3
+11. "bye / goodbye / thanks" → `end_call` → loop terminates
+
+Calendar: Mon–Fri only, past same-day slots excluded, weekend slots filtered.
 
 ---
 
@@ -132,6 +135,18 @@ To set up Piper locally:
 
 For the GitLab repo: the ONNX model is 61MB and requires Git LFS if committed.
 Alternative: add the download instructions to the team README and exclude from git.
+
+---
+
+## Testing
+
+```bash
+python test_pipeline.py          # 111 checks, mock mode, no GPU needed
+```
+
+Covers: name capture, spelled names, booking intent loop guard, empty/noise/emoji input,
+profanity 3-strike, out-of-scope, date edge cases (past, weekend, specific date, later date),
+slot exhaustion, unknown service, ambiguous confirmation, session reuse after booking, rapid fire.
 
 ---
 
