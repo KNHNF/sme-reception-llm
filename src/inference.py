@@ -16,19 +16,39 @@ Usage:
 
 import argparse
 import json
+import re as _re_top
 import sys
 import time
 from pathlib import Path
 from typing import Optional
 
+
+def _join_spelled_name(text: str) -> str:
+    """Convert hyphen-spelled names to a proper word.
+
+    'K-A-R-A-N'             → 'Karan'
+    'J-A-C-K R-E-A-C-H-E-R' → 'Jack Reacher'  (two separate groups)
+    'my name is K-A-R-A-N'  → 'my name is Karan'
+
+    Uses HYPHENS only as separators — spaces between groups mark word boundaries
+    so 'J-A-C-K R-E-A-C-H-E-R' becomes two matches, not one big 'Jackreacher'.
+    """
+    def _join(m: _re_top.Match) -> str:
+        letters = _re_top.findall(r"[A-Za-z]", m.group())
+        return "".join(letters).title()
+
+    return _re_top.sub(r"\b[A-Za-z](?:-[A-Za-z]){1,}\b", _join, text)
+
 # Support both: `python src/inference.py` (script) and `from src.inference import Pipeline` (module)
 try:
     from src.entity_extractor import extract, to_prompt_context
     from src.sme_action_schema import ActionOutput, render_confirmation
+    from src.calendar_store import get_next_slot, book_slot, describe_slot, _ordinal
 except ImportError:
     sys.path.insert(0, str(Path(__file__).parent))
     from entity_extractor import extract, to_prompt_context
     from sme_action_schema import ActionOutput, render_confirmation
+    from calendar_store import get_next_slot, book_slot, describe_slot, _ordinal
 
 SYSTEM_PROMPT = (
     "Appointment assistant. Output one JSON object only. "
@@ -90,8 +110,10 @@ def build_prompt(utterance: str, entities: dict, partial_context: Optional[dict]
     )
 
 
-def parse_llm_output(text: str) -> Optional[dict]:
+def parse_llm_output(text: Optional[str]) -> Optional[dict]:
     """Extract JSON from LLM output, tolerating minor formatting noise."""
+    if not text:
+        return None
     text = text.strip()
     start = text.find("{")
     end   = text.rfind("}")
@@ -220,11 +242,9 @@ class Pipeline:
         try:
             import src.session_manager as sm
             from src.profanity import contains_profanity, de_escalate, is_terminal_strike
-            from src.calendar_store import get_next_slot, describe_slot, book_slot
         except ImportError:
             import session_manager as sm  # type: ignore[no-redef]
             from profanity import contains_profanity, de_escalate, is_terminal_strike  # type: ignore[no-redef]
-            from calendar_store import get_next_slot, describe_slot, book_slot  # type: ignore[no-redef]
 
         t0 = time.perf_counter()
         session = sm.get_or_create(session_id)
@@ -295,19 +315,55 @@ class Pipeline:
                 raw, _re.IGNORECASE
             )
             if match:
-                name = match.group(1).strip().title()
+                name = _join_spelled_name(match.group(1).strip()).title()
             elif entities.get("person"):
-                name = entities["person"]
+                name = _join_spelled_name(entities["person"])
             else:
-                name = raw.title()
-            session.caller_name = name
-            session.awaiting_name = False
-            session.awaiting_name_confirm = True
-            session.touch()
-            spoken = (
-                f"Thank you. Just to confirm - did I catch that correctly as {name}?"
-            )
-            return self._quick(utterance, spoken, False, session, t0)
+                # No name found via regex or spaCy.
+                # Only re-ask if the utterance is clearly a booking request, not a name.
+                # Positive name check: a name is short and contains no action verbs.
+                # More reliable than a keyword blocklist.
+                _action_words = {
+                    "want", "like", "need", "book", "make", "cancel", "check",
+                    "schedule", "available", "appointment", "consultation", "general",
+                    "follow", "reschedule", "speak", "help", "calling", "hello",
+                }
+                _words = utterance.lower().split()
+                _is_intent = (
+                    len(_words) > 4
+                    or any(w in _action_words for w in _words)
+                )
+                if _is_intent:
+                    if session.name_reask_count >= 2:
+                        # Caller has ignored the name prompt twice — proceed without name,
+                        # store a placeholder so the rest of the pipeline works normally.
+                        session.caller_name = "there"
+                        session.awaiting_name = False
+                        session.awaiting_name_confirm = False
+                        session.touch()
+                        # Fall through to normal turn processing below
+                    else:
+                        session.name_reask_count += 1
+                        session.touch()
+                        spoken = (
+                            "I need your name before I can help with that. "
+                            "Could you tell me your first and last name please?"
+                        )
+                        return self._quick(utterance, spoken, False, session, t0)
+                name = _join_spelled_name(raw).title()
+            # Guard: awaiting_name may have been cleared by the name_reask bypass above.
+            # If so, skip name confirmation and fall through to normal turn processing.
+            if not session.awaiting_name:
+                pass  # bypass already set caller_name and cleared flags — continue below
+            else:
+                session.caller_name = name
+                session.awaiting_name = False
+                session.awaiting_name_confirm = True
+                session.touch()
+                spoken = (
+                    f"Thank you. Just to confirm - did I catch that correctly as {name}?"
+                )
+                return self._quick(utterance, spoken, False, session, t0)
 
         if getattr(session, "awaiting_name_confirm", False):
             # Caller is confirming or correcting their name
@@ -324,6 +380,27 @@ class Pipeline:
                     f"I can help with booking, cancellations, or checking availability."
                 )
             else:
+                # Check if they ignored the confirmation and sent booking intent again
+                # Only re-ask if this looks like booking intent, NOT a name correction.
+                # "No, it's Jack Richer" is a correction even though it's 4 words —
+                # so rely on verb presence only, not word count.
+                _reask_verbs = {"want", "like", "need", "book", "make", "cancel",
+                                "check", "schedule", "appointment", "consultation",
+                                "general", "follow", "available", "reschedule"}
+                _uwords = u.split()
+                _is_booking_intent = any(w in _reask_verbs for w in _uwords)
+                if _is_booking_intent:
+                    # Discard bad name, re-ask cleanly
+                    session.caller_name = None
+                    session.awaiting_name = True
+                    session.awaiting_name_confirm = False
+                    session.name_reask_count += 1
+                    session.touch()
+                    spoken = (
+                        "I still need your name before I can help with that. "
+                        "Could you tell me your first and last name please?"
+                    )
+                    return self._quick(utterance, spoken, False, session, t0)
                 # They're correcting - re-capture from this utterance
                 import re as _re2
                 match2 = _re2.search(
@@ -332,7 +409,7 @@ class Pipeline:
                     utterance, _re2.IGNORECASE
                 )
                 if match2:
-                    session.caller_name = match2.group(1).strip().title()
+                    session.caller_name = _join_spelled_name(match2.group(1).strip()).title()
                 session.touch()
                 spoken = (
                     f"Apologies! Thanks {session.caller_name}. How can I help you today? "
@@ -358,6 +435,9 @@ class Pipeline:
                          "that works", "that's fine", "sounds good", "perfect", "great"}
             no_words  = {"no", "nope", "nah", "different", "another", "else",
                          "not that", "other", "later", "earlier", "next"}
+            # Words that mean "a different day entirely" (not just a later time slot)
+            diff_day_words = {"date", "day", "week", "monday", "tuesday", "wednesday",
+                              "thursday", "friday"}
 
             if any(w in u for w in yes_words):
                 slot = session.pending_suggestion
@@ -367,19 +447,94 @@ class Pipeline:
                 from datetime import datetime as _dt
                 d = _dt.strptime(slot["date"], "%Y-%m-%d")
                 t = _dt.strptime(slot["time"], "%H:%M")
+                day_str = f"{d.strftime('%A')} {_ordinal(d.day)} {d.strftime('%B')}"
                 spoken = (
                     f"Brilliant{name_part}. I've booked your {slot['service'].replace('_', ' ')} "
-                    f"for {d.strftime('%A %d %B')} at {t.strftime('%I:%M %p').lstrip('0')}. "
+                    f"for {day_str} at {t.strftime('%I:%M %p').lstrip('0')}. "
                     f"You'll receive a confirmation shortly. Is there anything else I can help you with?"
                 )
                 return self._quick(utterance, spoken, False, session, t0)
 
-            if any(w in u for w in no_words):
-                session.suggestion_index += 1
+            # Check for a specific date request BEFORE the general no_words check.
+            # "the 26th", "on Friday", "if possible on the 24th" — NER + regex fallback.
+            # spaCy en_core_web_sm sometimes misses "the 26th of June" so we add a
+            # direct ordinal-date regex as a safety net.
+            _ents = extract(utterance)
+            req_date = _ents.get("date_resolved")
+            if not req_date:
+                import re as _re_ord
+                from datetime import date as _date_cls
+                _MONTHS = {
+                    "january": 1, "february": 2, "march": 3, "april": 4,
+                    "may": 5, "june": 6, "july": 7, "august": 8,
+                    "september": 9, "october": 10, "november": 11, "december": 12,
+                    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "jun": 6,
+                    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+                }
+                _om = _re_ord.search(
+                    r"\b(\d{1,2})(?:st|nd|rd|th)(?:\s+of\s+|\s+)?(\w+)?",
+                    utterance, _re_ord.IGNORECASE,
+                )
+                if _om:
+                    _day = int(_om.group(1))
+                    _mon_str = (_om.group(2) or "").lower().strip()
+                    _today = _date_cls.today()
+                    _month = _MONTHS.get(_mon_str, _today.month)
+                    try:
+                        from datetime import datetime as _dtord
+                        _cand = _dtord(_today.year, _month, _day).date()
+                        if _cand < _today:
+                            _cand = _dtord(_today.year + 1, _month, _day).date()
+                        req_date = _cand.isoformat()
+                    except ValueError:
+                        pass
+            if req_date and req_date != session.pending_suggestion.get("date"):
+                session.suggestion_index = 0
                 slot = get_next_slot(
                     service=session.pending_suggestion.get("service"),
-                    skip=session.suggestion_index,
+                    preferred_date=req_date,
+                    skip=0,
                 )
+                if slot:
+                    session.pending_suggestion = slot
+                    session.touch()
+                    if slot["date"] != req_date:
+                        from datetime import datetime as _dtreq
+                        req_d = _dtreq.strptime(req_date, "%Y-%m-%d")
+                        req_day = f"{req_d.strftime('%A')} {_ordinal(req_d.day)} {req_d.strftime('%B')}"
+                        spoken = (
+                            f"I'm afraid I don't have anything available on {req_day}. "
+                            f"The nearest I have is {describe_slot(slot)}. Would that work for you?"
+                        )
+                    else:
+                        spoken = f"How about {describe_slot(slot)}? Would that suit you?"
+                    return self._quick(utterance, spoken, False, session, t0)
+                else:
+                    session.pending_suggestion = None
+                    spoken = (
+                        "I'm afraid I don't have any availability around that date. "
+                        "Could I take your number and have someone call you back?"
+                    )
+                    return self._quick(utterance, spoken, False, session, t0)
+
+            if any(w in u for w in no_words):
+                session.suggestion_index += 1
+                # "later date" / "another day" = jump to NEXT calendar day entirely.
+                # "later" / "earlier" alone = same day different time → keep preferred_date.
+                _wants_diff_day = any(w in u for w in diff_day_words)
+                if _wants_diff_day:
+                    # Filter all future slots to those strictly after the current suggested date
+                    from calendar_store import find_slots as _find_all
+                    _current_date = session.pending_suggestion.get("date")
+                    _future = [s for s in _find_all(service=session.pending_suggestion.get("service"))
+                               if s["date"] > _current_date]
+                    slot = _future[0] if _future else None
+                else:
+                    slot = get_next_slot(
+                        service=session.pending_suggestion.get("service"),
+                        preferred_date=session.pending_suggestion.get("date"),
+                        skip=session.suggestion_index,
+                    )
                 if slot:
                     session.pending_suggestion = slot
                     session.touch()
@@ -405,6 +560,13 @@ class Pipeline:
             raw_text = self._hf_generate(prompt)
 
         t1 = time.perf_counter()
+
+        if not raw_text:
+            # Model returned nothing - fall back to confusion handler
+            session.confusion_count += 1
+            session.touch()
+            spoken = "I'm sorry, I didn't quite catch that. Could you say that again?"
+            return self._quick(utterance, spoken, False, session, t0)
 
         parsed    = parse_llm_output(raw_text)
         validated = validate_action(parsed)
@@ -471,6 +633,10 @@ class Pipeline:
                 }
         elif validated:
             session.confusion_count = 0   # reset on any successful action
+            # For direct book_appointment (model returned specific date+time+service),
+            # actually write to the calendar — render_confirmation is text-only.
+            if validated.action.value == "book_appointment":
+                book_slot(validated.date, validated.time, validated.service.value)
             spoken = render_confirmation(validated)
         else:
             spoken = "I could not process that. Could you repeat?"
@@ -573,9 +739,26 @@ class Pipeline:
 
         # Confused re-asks after a clarify - treat as continued booking intent
         if u.strip() in ("what time", "what date", "what service", "what appointment",
-                          "what?", "sorry?", "pardon?", "excuse me", "i don't understand"):
+                          "what?", "sorry?", "pardon?", "excuse me", "i don’t understand"):
             return json.dumps({"action": "clarify", "missing_fields": ["time"]})
 
         if any(w in u for w in ["cancel", "cancellation"]):
             return json.dumps({"action": "cancel_appointment", "date": date, "time": time})
 
+        if any(w in u for w in ["available", "availability", "free", "have any", "any slots",
+                                  "any appointments", "what times", "when can", "do you have"]):
+            return json.dumps({"action": "check_availability", "date": date, "service": svc})
+
+        if any(w in u for w in ["hours", "open", "close", "closing", "opening", "time do you",
+                                  "when are you", "directions", "address", "email", "confirmation",
+                                  "how do i", "how would", "will i receive", "get a"]):
+            return json.dumps({"action": "out_of_scope"})
+
+        # If specific date AND time are mentioned, go straight to book_appointment.
+        # Otherwise use check_availability so the slot-suggestion → yes/no flow runs
+        # and book_slot() is actually called when the caller confirms.
+        has_date = bool(entities.get("date_resolved"))
+        has_time = bool(entities.get("time_resolved"))
+        if has_date and has_time:
+            return json.dumps({"action": "book_appointment", "date": date, "time": time, "service": svc})
+        return json.dumps({"action": "check_availability", "date": date, "service": svc})

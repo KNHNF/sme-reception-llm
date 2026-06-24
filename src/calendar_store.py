@@ -28,6 +28,13 @@ def _load() -> list[dict]:
     return data["slots"]
 
 
+def _ordinal(n: int) -> str:
+    """Return the ordinal string for a day number: 1 → '1st', 25 → '25th'."""
+    if 11 <= (n % 100) <= 13:
+        return f"{n}th"
+    return f"{n}{['th', 'st', 'nd', 'rd', 'th'][min(n % 10, 4)]}"
+
+
 def _fmt_slot(slot: dict) -> str:
     """Human-readable slot description."""
     d = datetime.strptime(slot["date"], "%Y-%m-%d")
@@ -38,8 +45,9 @@ def _fmt_slot(slot: dict) -> str:
         "follow_up":    "a follow-up",
     }
     label = service_labels.get(slot["service"], slot["service"])
+    day_str = f"{d.strftime('%A')} {_ordinal(d.day)} {d.strftime('%B')}"
     return (
-        f"{label} on {d.strftime('%A %d %B')} "
+        f"{label} on {day_str} "
         f"at {t.strftime('%I:%M %p').lstrip('0')}"
     )
 
@@ -61,7 +69,9 @@ def find_slots(
         List of available slot dicts, up to 10.
     """
     slots = _load()
-    today = datetime.today().strftime("%Y-%m-%d")
+    now = datetime.today()
+    today = now.strftime("%Y-%m-%d")
+    now_time = now.strftime("%H:%M")
 
     # normalise service alias
     if service and service in _SERVICE_ALIASES:
@@ -71,6 +81,8 @@ def find_slots(
         s for s in slots
         if s["available"]
         and s["date"] >= today
+        and (s["date"] > today or s["time"] > now_time)  # exclude past same-day slots
+        and datetime.strptime(s["date"], "%Y-%m-%d").weekday() < 5  # Mon-Fri only
         and (service is None or s["service"] == service)
     ]
 
