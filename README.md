@@ -1,7 +1,7 @@
 # SME Reception LLM - IGP Private Dev Repo
 
 LLM-based real-time voice assistant for SME appointment booking.  
-UWE Bristol MSc Data Science - Group 6 (Karan Homayounfar, 25065219)
+UWE Bristol MSc Data Science 
 
 ---
 
