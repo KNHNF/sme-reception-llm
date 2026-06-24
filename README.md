@@ -120,6 +120,21 @@ No GPU needed. Image ~500MB.
 
 ---
 
+## Piper TTS setup
+
+The `piper/` folder contains the compiled binary and voice model (61MB ONNX file).
+It is gitignored in this private repo to avoid committing large binaries to GitHub.
+
+To set up Piper locally:
+1. Download from [github.com/rhasspy/piper/releases](https://github.com/rhasspy/piper/releases)
+2. Download voice model: `en_US-lessac-medium.onnx` from [huggingface.co/rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices)
+3. Place both in `piper/`
+
+For the GitLab repo: the ONNX model is 61MB and requires Git LFS if committed.
+Alternative: add the download instructions to the team README and exclude from git.
+
+---
+
 ## Do NOT re-run
 
 - `pip install` / `spacy download` - already done
@@ -129,6 +144,71 @@ No GPU needed. Image ~500MB.
 
 ---
 
+## Streamlit UI
+
+Visual web frontend for demos. Runs self-contained — no uvicorn needed:
+
+```bash
+streamlit run app.py          # opens at http://localhost:8501
+```
+
+The app imports the pipeline directly (embedded mode). If that fails it falls back to calling
+the FastAPI backend at `localhost:5005` (API mode — run `uvicorn backend:app --port 5005` first).
+
+Features: chat bubbles, per-turn action badges (BOOK / CANCEL / AVAIL. / OOS / CLARIFY),
+latency display, spaCy entity tags, Piper TTS audio playback via browser, example prompts
+sidebar, session turn counter, caller name display, new-call reset.
+
+---
+
 ## Stack
 
-Python 3.11, Faster-Whisper, spaCy en_core_web_sm, Phi-3 mini, Llama 3.2 3B, QLoRA/PEFT, BitsAndBytes 4-bit NF4, FastAPI, Pydantic v2, Piper TTS, SQLite, Docker
+Python 3.11, Faster-Whisper, spaCy en_core_web_sm, Phi-3 mini, Llama 3.2 3B,
+QLoRA/PEFT, BitsAndBytes 4-bit NF4, FastAPI, Pydantic v2, Piper TTS, SQLite, Docker
+
+---
+
+## Resources and citations
+
+### Models
+- **Llama 3.2 3B** — Meta AI (2024). [HuggingFace: meta-llama/Llama-3.2-3B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct)
+- **Phi-3 mini** — Abdin et al. (2024). [HuggingFace: microsoft/Phi-3-mini-4k-instruct](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct)
+- **Why these models?** Both are 3–4B parameter, instruction-tuned, quantisable to 4-bit NF4,
+  and run inference on CPU. The research question is whether small offline models, after domain
+  fine-tuning, can replace cloud APIs (GPT-4, Alexa) for structured NLU tasks.
+- **Why not Gemma?** Gemma 1 (available at training time) had weaker instruction-following
+  benchmarks than Phi-3 and Llama 3.2 at equivalent parameter counts, and less mature
+  QLoRA support in the `trl`/`peft` stack. Gemma 2 was not yet released.
+- **Why not GPT-4 / cloud models?** GDPR prevents sending patient/client data to third-party
+  servers. The offline constraint is the research contribution, not a limitation.
+
+### Training
+- **QLoRA** — Dettmers et al. (2023). [arXiv:2305.14314](https://arxiv.org/abs/2305.14314)
+  — quantises the frozen backbone to 4-bit NF4, trains only low-rank adapter matrices
+  (rank 16, ~4M parameters). Enables fine-tuning a 3B model on a free Kaggle T4 GPU (~60 min).
+- **LoRA** — Hu et al. (2022). [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
+- **Training compute** — [Kaggle T4 GPU notebooks](https://www.kaggle.com/) (free tier, 30h/week)
+- **Synthetic training data** — 600 samples generated with Claude claude-opus-4-8 (Anthropic, 2024),
+  covering 6 action types with varied phrasings, entities, and edge cases.
+
+### Speech recognition (STT)
+- **Faster-Whisper** — [github.com/SYSTRAN/faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+  — CTranslate2 backend, 4× faster than OpenAI Whisper on CPU, same model weights.
+- **Whisper** — Radford et al. (2022). [arXiv:2212.04356](https://arxiv.org/abs/2212.04356)
+- **STT benchmark** — [LibriSpeech dev-clean](https://www.openslr.org/12) (Panayotov et al., 2015)
+  — tiny: 17.3% WER, small: 8.5% WER.
+
+### Named entity recognition (NER)
+- **spaCy** — Honnibal & Montani (2017). [spacy.io](https://spacy.io/)
+  — `en_core_web_sm` pipeline, CPU-only, extracts DATE / TIME / SERVICE / PERSON.
+
+### Text-to-speech (TTS)
+- **Piper TTS** — [github.com/rhasspy/piper](https://github.com/rhasspy/piper)
+  — local neural TTS, ONNX runtime, no internet, `en_US-lessac-medium` voice.
+- **VITS** — Kim et al. (2021). [arXiv:2106.06103](https://arxiv.org/abs/2106.06103)
+  — Piper's underlying architecture.
+
+### Evaluation
+- 480-sample 4-condition evaluation (Phi-3 vanilla/FT, Llama 3.2 vanilla/FT).
+- Metrics: action accuracy (primary), exact JSON match (secondary), latency P50.
+- Evaluation scripts: `evaluation/eval_phi3.py`, `evaluation/eval_llama3.py`

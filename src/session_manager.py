@@ -27,6 +27,7 @@ class Session:
     caller_name: Optional[str] = None          # captured on the first turn
     awaiting_name: bool = False                # True if we just asked for the name
     awaiting_name_confirm: bool = False        # True after capturing name, waiting for yes/no
+    name_reask_count: int = 0                  # times we have re-asked for name (booking intent)
 
     # Calendar suggestion state
     pending_suggestion: Optional[dict] = None  # slot dict we just offered the caller

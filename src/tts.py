@@ -97,6 +97,24 @@ class TTS:
             "    3. Corrupt model -- re-download .onnx and .onnx.json"
         )
 
+    def to_wav_bytes(self, text: str) -> bytes | None:
+        """Generate WAV bytes from text without playing. Used by Streamlit UI."""
+        if not self.available:
+            return None
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            wav_path = tmp.name
+        try:
+            self._run_piper(text, wav_path)
+            with open(wav_path, "rb") as f:
+                return f.read()
+        except Exception:
+            return None
+        finally:
+            try:
+                os.unlink(wav_path)
+            except OSError:
+                pass
+
     def _play(self, wav_path: str) -> None:
         import sys
         if sys.platform == "win32":

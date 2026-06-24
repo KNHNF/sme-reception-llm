@@ -1,0 +1,149 @@
+
+=== SME Pipeline ΓÇö Smoke + Edge Case Tests (Mock mode) ===
+(spaCy NER required ΓÇö run from your local machine)
+
+Pipeline running in MOCK mode -- no GPU needed.
+[92m[PASS][0m Pipeline loaded
+
+
+ΓöÇΓöÇ Happy path ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Jack Reacher'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Book a general appointment'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Sam Brown'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'I need a consultation next Thursday'
+  [92m[PASS][0m 'No'
+  [92m[PASS][0m 'Yes'
+
+ΓöÇΓöÇ Name edge cases ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'K-A-R-A-N'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'J-A-C-K R-E-A-C-H-E-R'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m "O'Brien"
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Bartholomew Worthington-Smythe'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Cher'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Jack Preacher'
+  [92m[PASS][0m "No it's Jack Reacher"
+  [92m[PASS][0m 'I want to book a general appointment'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'My name is Ali Hassan'
+  [92m[PASS][0m 'Yes'
+
+ΓöÇΓöÇ Booking intent loop guard ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'I want to make a consultation'
+  [92m[PASS][0m 'I want to make a consultation'
+  [92m[PASS][0m 'I want to make a consultation'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m "I'd like to book an appointment"
+  [92m[PASS][0m "I'd like to book an appointment"
+  [92m[PASS][0m "I'd like to book an appointment"
+
+ΓöÇΓöÇ Empty / noise inputs ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m empty string
+  [92m[PASS][0m whitespace only
+  [92m[PASS][0m very long input (500 chars)
+  [92m[PASS][0m gibberish input
+  [92m[PASS][0m 'HELLO I WANT TO BOOK AN APPOINTMENT'
+  [92m[PASS][0m numbers only
+  [92m[PASS][0m unicode name (Jos├⌐ Garc├¡a)
+  [92m[PASS][0m emoji in input
+
+ΓöÇΓöÇ Profanity / 3-strike ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m strike 1 ΓÇö gentle redirect
+  [92m[PASS][0m strike 2 ΓÇö firm reminder
+  [92m[PASS][0m strike 3 ΓÇö end call
+  [92m[PASS][0m after strike 3 ΓÇö no crash
+
+ΓöÇΓöÇ Out of scope ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Ali Hassan'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m "What's the weather like today?"
+  [92m[PASS][0m 'Can you recommend a restaurant?'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Sam Lee'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Do I need a referral to see a specialist?'
+
+ΓöÇΓöÇ Date edge cases ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Ali Hassan'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'book a general appointment'
+  [92m[PASS][0m 'can I get it on January 1st'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Ali Hassan'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'book a general appointment'
+  [92m[PASS][0m 'how about Saturday'
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Sam Brown'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'book a general appointment'
+
+ΓöÇΓöÇ Slot exhaustion ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Ali Hassan'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'book a general appointment'
+  [92m[PASS][0m slot exhaustion ΓÇö graceful after 1 rejections
+
+ΓöÇΓöÇ Unknown service ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Ali Hassan'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'I need a dentist appointment'
+  [92m[PASS][0m 'I need physiotherapy'
+
+ΓöÇΓöÇ Ambiguous confirmation in pending_suggestion ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Ali Hassan'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Book a general appointment'
+  [92m[PASS][0m 'maybe'
+  [92m[PASS][0m 'possibly'
+  [92m[PASS][0m 'yes please'
+
+ΓöÇΓöÇ Session state after completed booking ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m 'Hello'
+  [92m[PASS][0m 'Ali Hassan'
+  [92m[PASS][0m 'Yes'
+  [92m[PASS][0m 'Book a general appointment'
+  [91m[FAIL][0m 'Yes'
+       GOT : "I'm afraid there are no available slots matching that request right now. Would you like me to check for a different date or servic"
+       WHY : missing 'booked'
+  [92m[PASS][0m 'I also need a follow-up'
+
+ΓöÇΓöÇ Rapid fire turns (no crashes) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  [92m[PASS][0m rapid fire: 'hello'
+  [92m[PASS][0m rapid fire: 'test user'
+  [92m[PASS][0m rapid fire: 'yes'
+  [92m[PASS][0m rapid fire: 'book'
+  [92m[PASS][0m rapid fire: 'no'
+  [92m[PASS][0m rapid fire: 'no'
+  [92m[PASS][0m rapid fire: 'yes'
+  [92m[PASS][0m rapid fire: 'cancel'
+  [92m[PASS][0m rapid fire: 'reschedule'
+  [92m[PASS][0m rapid fire: 'what'
+  [92m[PASS][0m rapid fire: 'hello again'
+  [92m[PASS][0m rapid fire: 'bye'
+
+============================================================
+  [91m[FAIL][0m 110/111 passed ΓÇö 1 failure(s)
+============================================================
+
