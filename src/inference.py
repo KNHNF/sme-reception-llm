@@ -518,7 +518,10 @@ class Pipeline:
                 _wants_diff_day = any(w in u for w in diff_day_words)
                 if _wants_diff_day:
                     # Filter all future slots to those strictly after the current suggested date
-                    from calendar_store import find_slots as _find_all
+                    try:
+                        from src.calendar_store import find_slots as _find_all
+                    except ImportError:
+                        from calendar_store import find_slots as _find_all
                     _current_date = session.pending_suggestion.get("date")
                     _future = [s for s in _find_all(service=session.pending_suggestion.get("service"))
                                if s["date"] > _current_date]
@@ -726,6 +729,11 @@ class Pipeline:
         date = entities.get("date_resolved") or "2026-06-25"
         time = entities.get("time_resolved") or "10:00"
         svc  = entities.get("service") or "general"
+
+        # Bare negatives after booking confirmation ("anything else?" -> "no")
+        if u.strip() in ("no", "nope", "nah", "nothing", "no thanks", "that's all",
+                         "that is all", "all good", "all done", "no that's all"):
+            return json.dumps({"action": "end_call"})
 
         if any(w in u for w in ["bye", "goodbye", "thank you", "thanks", "that's all",
                                    "thats all", "no thanks", "nothing else", "have a good"]):

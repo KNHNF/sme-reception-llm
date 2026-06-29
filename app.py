@@ -61,6 +61,17 @@ def _api_turn(utterance, session_id):
 
 def _embedded_turn(pipeline, utterance, session_id):
     result = pipeline.run(utterance, session_id=session_id)
+    try:
+        from src.metrics_logger import log_turn
+        log_turn(
+            session_id=session_id,
+            utterance=utterance,
+            action=result.get("action"),
+            validated=result.get("validated", False),
+            latency_ms=result.get("latency_ms", 0),
+        )
+    except Exception:
+        pass
     action = result.get("action") or {}
     action_str = action.get("action", "") if isinstance(action, dict) else str(action)
     return {
