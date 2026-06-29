@@ -49,4 +49,4 @@ Thumbs.db
 # Non-code documents (word docs, assessment briefs, uni files)
 docs/
 *.docx
-*.pdf
+*.pdfdata/metrics.db
