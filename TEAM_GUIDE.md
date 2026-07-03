@@ -1,4 +1,4 @@
-# SME Voice Assistant - Team Guide
+g# SME Voice Assistant - Team Guide
 UWE Bristol MSc Data Science IGP | Group Project
 
 This guide is for everyone on the team. Read it before the viva.

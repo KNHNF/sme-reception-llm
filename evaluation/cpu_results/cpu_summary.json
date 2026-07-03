@@ -1,0 +1,26 @@
+[
+  {
+    "model": "phi3",
+    "quant": "Q3_K_M",
+    "hardware": "CPU",
+    "timestamp": "2026-07-03T07:10:55.444716",
+    "n_samples": 30,
+    "action_acc": 66.7,
+    "json_valid": 100.0,
+    "exact_match": 13.3,
+    "latency_p50_ms": 2670.0,
+    "latency_p95_ms": 3890.0
+  },
+  {
+    "model": "llama3",
+    "quant": "Q3_K_M",
+    "hardware": "CPU",
+    "timestamp": "2026-07-03T07:14:49.018976",
+    "n_samples": 30,
+    "action_acc": 86.7,
+    "json_valid": 100.0,
+    "exact_match": 16.7,
+    "latency_p50_ms": 1721.0,
+    "latency_p95_ms": 2925.0
+  }
+]

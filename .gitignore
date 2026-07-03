@@ -1,5 +1,8 @@
 # Model weights and adapters (too large for git)
 checkpoints/
+
+# llama.cpp clone + pre-built binaries (too large for git)
+tools/
 *.safetensors
 *.bin
 *.pt
@@ -49,4 +52,5 @@ Thumbs.db
 # Non-code documents (word docs, assessment briefs, uni files)
 docs/
 *.docx
-*.pdfdata/metrics.db
+*.pdf
+data/metrics.db
