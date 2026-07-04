@@ -4,7 +4,7 @@
     "action_correct": true,
     "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 3035.0,
+    "latency_ms": 3541.0,
     "expected": {
       "action": "book_appointment",
       "date": "2026-07-06",
@@ -13,28 +13,32 @@
     },
     "predicted": {
       "action": "book_appointment",
-      "date": "2026-07-06",
-      "time": "10:00"
+      "date": "2026-07-05",
+      "time": "10:00",
+      "missing_fields": [
+        "service"
+      ]
     },
-    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-06\", \"time\": \"10:00\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-05\", \"time\": \"10:00\", \"missing_fields\": [\"service\"]}",
     "utterance": "I'd like to book an appointment for next Monday at 10am"
   },
   {
     "json_valid": true,
-    "action_correct": false,
-    "fields_correct": false,
+    "action_correct": true,
+    "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1837.3,
+    "latency_ms": 1796.3,
     "expected": {
       "action": "book_appointment",
       "service": "consultation"
     },
     "predicted": {
-      "action": "check_availability",
-      "date": "2026-07-07",
+      "action": "book_appointment",
+      "date": "2026-07-06",
+      "time": "15:00",
       "service": "consultation"
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-07\", \"service\": \"consultation\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-06\", \"time\": \"15:00\", \"service\": \"consultation\"}",
     "utterance": "Can I schedule a consultation for Tuesday afternoon?"
   },
   {
@@ -42,18 +46,18 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2127.1,
+    "latency_ms": 1827.2,
     "expected": {
       "action": "book_appointment",
       "service": "follow_up"
     },
     "predicted": {
       "action": "book_appointment",
-      "date": "2026-07-06",
-      "time": "14:30",
+      "date": "2026-07-05",
+      "time": "14:00",
       "service": "follow_up"
     },
-    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-06\", \"time\": \"14:30\", \"service\": \"follow_up\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-05\", \"time\": \"14:00\", \"service\": \"follow_up\"}",
     "utterance": "I need to make an appointment for a follow up visit"
   },
   {
@@ -61,24 +65,25 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1682.9,
+    "latency_ms": 1734.7,
     "expected": {
       "action": "book_appointment"
     },
     "predicted": {
       "action": "book_appointment",
       "date": "2026-07-08",
-      "time": "09:00"
+      "time": "09:00",
+      "service": "general"
     },
-    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-08\", \"time\": \"09:00\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-08\", \"time\": \"09:00\", \"service\": \"general\"}",
     "utterance": "Book me in for Wednesday morning please"
   },
   {
     "json_valid": true,
     "action_correct": true,
-    "fields_correct": true,
+    "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 2246.5,
+    "latency_ms": 1879.0,
     "expected": {
       "action": "book_appointment",
       "service": "general"
@@ -87,43 +92,50 @@
       "action": "book_appointment",
       "date": "2026-07-03",
       "time": "14:00",
-      "service": "general"
+      "missing_fields": [
+        "service"
+      ]
     },
-    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-03\", \"time\": \"14:00\", \"service\": \"general\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-03\", \"time\": \"14:00\", \"missing_fields\": [\"service\"]}",
     "utterance": "I want to set up a general appointment for Friday"
   },
   {
     "json_valid": true,
     "action_correct": true,
-    "fields_correct": true,
+    "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 2090.9,
+    "latency_ms": 1940.2,
     "expected": {
       "action": "book_appointment",
       "time": "14:00"
     },
     "predicted": {
       "action": "book_appointment",
-      "date": "2026-07-04",
-      "time": "14:00",
-      "service": "general"
+      "date": "2026-07-05",
+      "time": "15:00",
+      "missing_fields": [
+        "service"
+      ]
     },
-    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-04\", \"time\": \"14:00\", \"service\": \"general\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-05\", \"time\": \"15:00\", \"missing_fields\": [\"service\"]}",
     "utterance": "Can you book me an appointment for 2pm tomorrow?"
   },
   {
     "json_valid": true,
-    "action_correct": false,
-    "fields_correct": false,
+    "action_correct": true,
+    "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 698.6,
+    "latency_ms": 1885.1,
     "expected": {
       "action": "book_appointment"
     },
     "predicted": {
-      "action": "out_of_scope"
+      "action": "book_appointment",
+      "date": "2026-07-05",
+      "time": "14:00",
+      "service": "consultation"
     },
-    "raw": "{\"action\": \"out_of_scope\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-05\", \"time\": \"14:00\", \"service\": \"consultation\"}",
     "utterance": "I need to see someone as soon as possible"
   },
   {
@@ -131,18 +143,18 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2576.9,
+    "latency_ms": 1854.1,
     "expected": {
       "action": "book_appointment",
       "service": "consultation"
     },
     "predicted": {
       "action": "book_appointment",
-      "date": "2026-07-06",
-      "time": "14:30",
+      "date": "2026-07-05",
+      "time": "14:00",
       "service": "consultation"
     },
-    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-06\", \"time\": \"14:30\", \"service\": \"consultation\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-05\", \"time\": \"14:00\", \"service\": \"consultation\"}",
     "utterance": "Schedule me for a consultation next week"
   },
   {
@@ -150,16 +162,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1938.3,
+    "latency_ms": 1613.9,
     "expected": {
       "action": "check_availability"
     },
     "predicted": {
       "action": "check_availability",
       "date": "2026-07-02",
-      "service": "general"
+      "missing_fields": []
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-02\", \"service\": \"general\"}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-02\", \"missing_fields\": []}",
     "utterance": "Is there anything available on Thursday?"
   },
   {
@@ -167,16 +179,17 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1956.0,
+    "latency_ms": 2227.3,
     "expected": {
       "action": "check_availability"
     },
     "predicted": {
       "action": "check_availability",
-      "date": "2026-07-06",
+      "date": "2026-07-05",
+      "time": "14:00",
       "service": "general"
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-06\", \"service\": \"general\"}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-05\", \"time\": \"14:00\", \"service\": \"general\"}",
     "utterance": "Do you have any slots free this week?"
   },
   {
@@ -184,16 +197,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1913.0,
+    "latency_ms": 1840.2,
     "expected": {
       "action": "check_availability"
     },
     "predicted": {
       "action": "check_availability",
-      "date": "2026-07-04",
-      "missing_fields": []
+      "date": "2026-07-05",
+      "time": "14:00"
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-04\", \"missing_fields\": []}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-05\", \"time\": \"14:00\"}",
     "utterance": "What times do you have available tomorrow?"
   },
   {
@@ -201,16 +214,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2064.5,
+    "latency_ms": 1878.8,
     "expected": {
       "action": "check_availability"
     },
     "predicted": {
       "action": "check_availability",
-      "date": "2026-07-06",
+      "date": "2026-07-05",
       "time": "08:00"
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-06\", \"time\": \"08:00\"}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-05\", \"time\": \"08:00\"}",
     "utterance": "Can I check if there's a morning slot on Monday?"
   },
   {
@@ -218,16 +231,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1990.6,
+    "latency_ms": 1736.3,
     "expected": {
       "action": "check_availability"
     },
     "predicted": {
       "action": "check_availability",
       "date": "2026-07-03",
-      "time": "out_of_scope"
+      "time": "15:00"
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-03\", \"time\": \"out_of_scope\"}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-03\", \"time\": \"15:00\"}",
     "utterance": "Are you free next Friday afternoon?"
   },
   {
@@ -235,16 +248,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2025.1,
+    "latency_ms": 1799.6,
     "expected": {
       "action": "check_availability"
     },
     "predicted": {
       "action": "check_availability",
       "date": "2026-07-15",
-      "service": "general"
+      "missing_fields": []
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-15\", \"service\": \"general\"}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-15\", \"missing_fields\": []}",
     "utterance": "Do you have anything on the 15th?"
   },
   {
@@ -252,15 +265,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1516.6,
+    "latency_ms": 1664.7,
     "expected": {
       "action": "cancel_appointment"
     },
     "predicted": {
       "action": "cancel_appointment",
-      "date": "2026-07-03"
+      "date": "2026-07-03",
+      "missing_fields": []
     },
-    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-03\"}",
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-03\", \"missing_fields\": []}",
     "utterance": "I need to cancel my appointment on Friday"
   },
   {
@@ -268,49 +282,50 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2015.5,
+    "latency_ms": 1637.4,
     "expected": {
       "action": "cancel_appointment"
     },
     "predicted": {
       "action": "cancel_appointment",
-      "date": "2026-07-04",
-      "time": "14:00"
+      "date": "2026-07-05",
+      "missing_fields": []
     },
-    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-04\", \"time\": \"14:00\"}",
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-05\", \"missing_fields\": []}",
     "utterance": "Please cancel my booking for tomorrow"
   },
   {
     "json_valid": true,
     "action_correct": true,
-    "fields_correct": true,
+    "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 1992.0,
+    "latency_ms": 1728.2,
     "expected": {
       "action": "cancel_appointment",
       "service": "consultation"
     },
     "predicted": {
       "action": "cancel_appointment",
-      "date": "2026-07-06",
-      "service": "consultation"
+      "date": "2026-07-05",
+      "missing_fields": []
     },
-    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-06\", \"service\": \"consultation\"}",
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-05\", \"missing_fields\": []}",
     "utterance": "I want to cancel my consultation next Monday"
   },
   {
     "json_valid": true,
     "action_correct": true,
     "fields_correct": true,
-    "exact_match": true,
-    "latency_ms": 791.5,
+    "exact_match": false,
+    "latency_ms": 1176.6,
     "expected": {
       "action": "cancel_appointment"
     },
     "predicted": {
-      "action": "cancel_appointment"
+      "action": "cancel_appointment",
+      "appointment_id": "123456"
     },
-    "raw": "{\"action\": \"cancel_appointment\"}",
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"123456\"}",
     "utterance": "Can you remove my appointment please"
   },
   {
@@ -318,7 +333,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1208.6,
+    "latency_ms": 1078.0,
     "expected": {
       "action": "cancel_appointment"
     },
@@ -331,130 +346,134 @@
   },
   {
     "json_valid": true,
-    "action_correct": true,
-    "fields_correct": true,
-    "exact_match": false,
-    "latency_ms": 1317.3,
-    "expected": {
-      "action": "clarify"
-    },
-    "predicted": {
-      "action": "clarify",
-      "missing_fields": [
-        "date",
-        "service"
-      ]
-    },
-    "raw": "{\"action\": \"clarify\", \"missing_fields\": [\"date\", \"service\"]}",
-    "utterance": "I need an appointment"
-  },
-  {
-    "json_valid": true,
     "action_correct": false,
     "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 762.2,
+    "latency_ms": 2004.5,
     "expected": {
       "action": "clarify"
     },
     "predicted": {
-      "action": "out_of_scope"
+      "action": "book_appointment",
+      "date": "2026-07-05",
+      "time": "14:00",
+      "service": "general"
     },
-    "raw": "{\"action\": \"out_of_scope\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-05\", \"time\": \"14:00\", \"service\": \"general\"}",
+    "utterance": "I need an appointment"
+  },
+  {
+    "json_valid": false,
+    "action_correct": false,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 2229.1,
+    "expected": {
+      "action": "clarify"
+    },
+    "predicted": {},
+    "raw": "I need to know what action you'd like me to perform. Please choose one of the following: book_appointment, check_availability, cancel_appointment, clarify, out_of_scope.",
     "utterance": "Yes"
   },
   {
     "json_valid": true,
-    "action_correct": false,
-    "fields_correct": false,
-    "exact_match": false,
-    "latency_ms": 848.1,
-    "expected": {
-      "action": "clarify"
-    },
-    "predicted": {
-      "action": "out_of_scope"
-    },
-    "raw": "{\"action\": \"out_of_scope\"}",
-    "utterance": "Um, I'm not sure"
-  },
-  {
-    "json_valid": true,
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1382.1,
+    "latency_ms": 1057.7,
     "expected": {
       "action": "clarify"
     },
     "predicted": {
       "action": "clarify",
       "missing_fields": [
-        "date",
-        "service"
+        "question"
       ]
     },
-    "raw": "{\"action\": \"clarify\", \"missing_fields\": [\"date\", \"service\"]}",
+    "raw": "{\"action\": \"clarify\", \"missing_fields\": [\"question\"]}",
+    "utterance": "Um, I'm not sure"
+  },
+  {
+    "json_valid": true,
+    "action_correct": false,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 1602.6,
+    "expected": {
+      "action": "clarify"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-07-05",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-05\", \"service\": \"general\"}",
     "utterance": "Maybe next week?"
   },
   {
     "json_valid": true,
     "action_correct": true,
     "fields_correct": true,
-    "exact_match": true,
-    "latency_ms": 822.4,
+    "exact_match": false,
+    "latency_ms": 1425.4,
     "expected": {
       "action": "out_of_scope"
     },
     "predicted": {
-      "action": "out_of_scope"
+      "action": "out_of_scope",
+      "reason": "weather information is out of my scope"
     },
-    "raw": "{\"action\": \"out_of_scope\"}",
+    "raw": "{\"action\": \"out_of_scope\", \"reason\": \"weather information is out of my scope\"}",
     "utterance": "What's the weather like today?"
   },
   {
     "json_valid": true,
     "action_correct": true,
     "fields_correct": true,
-    "exact_match": true,
-    "latency_ms": 819.0,
+    "exact_match": false,
+    "latency_ms": 1410.1,
     "expected": {
       "action": "out_of_scope"
     },
     "predicted": {
-      "action": "out_of_scope"
+      "action": "out_of_scope",
+      "reason": "No information about nearby restaurants."
     },
-    "raw": "{\"action\": \"out_of_scope\"}",
+    "raw": "{\"action\": \"out_of_scope\", \"reason\": \"No information about nearby restaurants.\"}",
     "utterance": "Can you recommend a good restaurant nearby?"
   },
   {
     "json_valid": true,
-    "action_correct": true,
-    "fields_correct": true,
-    "exact_match": true,
-    "latency_ms": 801.8,
+    "action_correct": false,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 2161.9,
     "expected": {
       "action": "out_of_scope"
     },
     "predicted": {
-      "action": "out_of_scope"
+      "action": "book_appointment",
+      "date": "2026-07-05",
+      "time": "14:00",
+      "service": "consultation"
     },
-    "raw": "{\"action\": \"out_of_scope\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-05\", \"time\": \"14:00\", \"service\": \"consultation\"}",
     "utterance": "How much does a consultation cost?"
   },
   {
     "json_valid": true,
     "action_correct": true,
     "fields_correct": true,
-    "exact_match": true,
-    "latency_ms": 817.2,
+    "exact_match": false,
+    "latency_ms": 1729.4,
     "expected": {
       "action": "out_of_scope"
     },
     "predicted": {
-      "action": "out_of_scope"
+      "action": "out_of_scope",
+      "reason": "Gift vouchers are not a standard service offered by our general service."
     },
-    "raw": "{\"action\": \"out_of_scope\"}",
+    "raw": "{\"action\": \"out_of_scope\", \"reason\": \"Gift vouchers are not a standard service offered by our general service.\"}",
     "utterance": "Do you sell gift vouchers?"
   },
   {
@@ -462,7 +481,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2605.1,
+    "latency_ms": 2433.5,
     "expected": {
       "action": "book_appointment",
       "service": "consultation",
@@ -470,11 +489,11 @@
     },
     "predicted": {
       "action": "book_appointment",
-      "date": "2026-07-06",
+      "date": "2026-07-05",
       "time": "14:00",
       "service": "consultation"
     },
-    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-06\", \"time\": \"14:00\", \"service\": \"consultation\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-05\", \"time\": \"14:00\", \"service\": \"consultation\"}",
     "utterance": "I want to book a CONSULTATION for NEXT MONDAY at TWO PM"
   },
   {
@@ -482,16 +501,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1986.0,
+    "latency_ms": 1718.6,
     "expected": {
       "action": "cancel_appointment"
     },
     "predicted": {
       "action": "cancel_appointment",
       "date": "2026-07-03",
-      "time": "15:00"
+      "missing_fields": []
     },
-    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-03\", \"time\": \"15:00\"}",
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-03\", \"missing_fields\": []}",
     "utterance": "cancel the friday one"
   },
   {
@@ -499,16 +518,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1965.2,
+    "latency_ms": 1729.6,
     "expected": {
       "action": "check_availability"
     },
     "predicted": {
       "action": "check_availability",
-      "date": "2026-07-04",
-      "time": "08:00"
+      "date": "2026-07-05",
+      "time": "06:00"
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-04\", \"time\": \"08:00\"}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-05\", \"time\": \"06:00\"}",
     "utterance": "anything tomorrow morning"
   }
 ]

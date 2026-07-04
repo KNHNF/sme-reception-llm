@@ -33,6 +33,9 @@ from pathlib import Path
 app = FastAPI(title="SME Voice Assistant API", version="0.1.0")
 DASHBOARD_PATH = Path(__file__).parent / "docs" / "dashboard.html"
 
+from twilio_handler import router as twilio_router
+app.include_router(twilio_router)
+
 def _get_logger():
     try:
         from src.metrics_logger import log_turn, get_metrics, clear_metrics

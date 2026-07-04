@@ -151,7 +151,8 @@ class Pipeline:
                  model_family: str = "phi3",
                  adapter_path: Optional[str] = None,
                  ollama_model: str = "llama3.2",
-                 ollama_url: str = "http://localhost:11434"):
+                 ollama_url: str = "http://localhost:11434",
+                 cpu_url: str = "http://127.0.0.1:8080"):
 
         self.mode         = mode
         self.model_family = model_family
@@ -159,6 +160,8 @@ class Pipeline:
         self.tokenizer    = None
         self.ollama_model = ollama_model
         self.ollama_url   = ollama_url
+        self.cpu_url      = cpu_url
+        self.cpu_timeout  = 60
 
         model_id = MODEL_IDS.get(model_family, MODEL_IDS["phi3"])
 
@@ -168,6 +171,20 @@ class Pipeline:
 
         if mode == "ollama":
             print(f"Pipeline using Ollama: {ollama_model} at {ollama_url}")
+            return
+
+        if mode == "cpu":
+            import urllib.request as _u
+            try:
+                with _u.urlopen(f"{cpu_url}/health", timeout=3) as r:
+                    reachable = (r.status == 200)
+            except Exception:
+                reachable = False
+            if reachable:
+                print(f"Pipeline using llama.cpp CPU server at {cpu_url}")
+            else:
+                print(f"WARNING: no llama.cpp server reachable at {cpu_url}.")
+                print("Start it first: python scripts/03_cpu_server.py --model phi3")
             return
 
         import torch
@@ -553,6 +570,8 @@ class Pipeline:
             raw_text = self._mock_output(utterance, entities, session)
         elif self.mode == "ollama":
             raw_text = self._ollama_generate(prompt)
+        elif self.mode == "cpu":
+            raw_text = self._cpu_generate(prompt)
         else:
             raw_text = self._hf_generate(prompt)
 
@@ -719,6 +738,35 @@ class Pipeline:
             return data.get("response", "").strip()
         except Exception as e:
             return f'{{"action": "out_of_scope"}}  # ollama error: {e}'
+
+    def _cpu_generate(self, prompt: str) -> str:
+        """
+        Call the local llama.cpp server (scripts/03_cpu_server.py) /completion endpoint.
+        Sends the raw templated prompt so the input matches the fine-tuning format exactly.
+        """
+        import json as _json
+        import urllib.request
+
+        stop = ["<|eot_id|>"] if self.model_family == "llama3" else ["<|end|>"]
+        payload = _json.dumps({
+            "prompt":      prompt,
+            "n_predict":   40,
+            "temperature": 0,
+            "stop":        stop,
+            "stream":      False,
+        }).encode()
+
+        req = urllib.request.Request(
+            f"{self.cpu_url}/completion",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=self.cpu_timeout) as resp:
+                data = _json.loads(resp.read())
+            return (data.get("content") or "").strip()
+        except Exception as e:
+            return f'{{"action": "out_of_scope"}}  # cpu server error: {e}'
 
     def _mock_output(self, utterance: str, entities: dict, session=None) -> str:
         """

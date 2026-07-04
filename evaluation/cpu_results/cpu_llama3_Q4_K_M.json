@@ -4,7 +4,7 @@
     "action_correct": true,
     "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 3035.0,
+    "latency_ms": 2679.1,
     "expected": {
       "action": "book_appointment",
       "date": "2026-07-06",
@@ -24,7 +24,7 @@
     "action_correct": false,
     "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 1837.3,
+    "latency_ms": 1536.0,
     "expected": {
       "action": "book_appointment",
       "service": "consultation"
@@ -42,7 +42,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2127.1,
+    "latency_ms": 1974.6,
     "expected": {
       "action": "book_appointment",
       "service": "follow_up"
@@ -61,7 +61,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1682.9,
+    "latency_ms": 1570.7,
     "expected": {
       "action": "book_appointment"
     },
@@ -78,7 +78,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2246.5,
+    "latency_ms": 1913.2,
     "expected": {
       "action": "book_appointment",
       "service": "general"
@@ -97,18 +97,18 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2090.9,
+    "latency_ms": 1909.5,
     "expected": {
       "action": "book_appointment",
       "time": "14:00"
     },
     "predicted": {
       "action": "book_appointment",
-      "date": "2026-07-04",
+      "date": "2026-07-05",
       "time": "14:00",
       "service": "general"
     },
-    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-04\", \"time\": \"14:00\", \"service\": \"general\"}",
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-05\", \"time\": \"14:00\", \"service\": \"general\"}",
     "utterance": "Can you book me an appointment for 2pm tomorrow?"
   },
   {
@@ -116,7 +116,7 @@
     "action_correct": false,
     "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 698.6,
+    "latency_ms": 654.2,
     "expected": {
       "action": "book_appointment"
     },
@@ -128,21 +128,20 @@
   },
   {
     "json_valid": true,
-    "action_correct": true,
-    "fields_correct": true,
+    "action_correct": false,
+    "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 2576.9,
+    "latency_ms": 1525.0,
     "expected": {
       "action": "book_appointment",
       "service": "consultation"
     },
     "predicted": {
-      "action": "book_appointment",
+      "action": "check_availability",
       "date": "2026-07-06",
-      "time": "14:30",
       "service": "consultation"
     },
-    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-06\", \"time\": \"14:30\", \"service\": \"consultation\"}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-06\", \"service\": \"consultation\"}",
     "utterance": "Schedule me for a consultation next week"
   },
   {
@@ -150,7 +149,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1938.3,
+    "latency_ms": 1476.9,
     "expected": {
       "action": "check_availability"
     },
@@ -167,7 +166,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1956.0,
+    "latency_ms": 1522.6,
     "expected": {
       "action": "check_availability"
     },
@@ -184,16 +183,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1913.0,
+    "latency_ms": 1519.0,
     "expected": {
       "action": "check_availability"
     },
     "predicted": {
       "action": "check_availability",
-      "date": "2026-07-04",
-      "missing_fields": []
+      "date": "2026-07-05",
+      "service": "general"
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-04\", \"missing_fields\": []}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-05\", \"service\": \"general\"}",
     "utterance": "What times do you have available tomorrow?"
   },
   {
@@ -201,7 +200,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2064.5,
+    "latency_ms": 1650.2,
     "expected": {
       "action": "check_availability"
     },
@@ -218,7 +217,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1990.6,
+    "latency_ms": 1618.4,
     "expected": {
       "action": "check_availability"
     },
@@ -235,7 +234,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2025.1,
+    "latency_ms": 1598.5,
     "expected": {
       "action": "check_availability"
     },
@@ -252,7 +251,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1516.6,
+    "latency_ms": 1216.6,
     "expected": {
       "action": "cancel_appointment"
     },
@@ -268,16 +267,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2015.5,
+    "latency_ms": 1639.7,
     "expected": {
       "action": "cancel_appointment"
     },
     "predicted": {
       "action": "cancel_appointment",
-      "date": "2026-07-04",
-      "time": "14:00"
+      "date": "2026-07-05",
+      "time": "14:30"
     },
-    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-04\", \"time\": \"14:00\"}",
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-07-05\", \"time\": \"14:30\"}",
     "utterance": "Please cancel my booking for tomorrow"
   },
   {
@@ -285,7 +284,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1992.0,
+    "latency_ms": 1674.2,
     "expected": {
       "action": "cancel_appointment",
       "service": "consultation"
@@ -303,7 +302,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": true,
-    "latency_ms": 791.5,
+    "latency_ms": 684.4,
     "expected": {
       "action": "cancel_appointment"
     },
@@ -318,7 +317,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1208.6,
+    "latency_ms": 1082.8,
     "expected": {
       "action": "cancel_appointment"
     },
@@ -334,7 +333,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1317.3,
+    "latency_ms": 1118.5,
     "expected": {
       "action": "clarify"
     },
@@ -353,7 +352,7 @@
     "action_correct": false,
     "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 762.2,
+    "latency_ms": 589.8,
     "expected": {
       "action": "clarify"
     },
@@ -368,7 +367,7 @@
     "action_correct": false,
     "fields_correct": false,
     "exact_match": false,
-    "latency_ms": 848.1,
+    "latency_ms": 681.8,
     "expected": {
       "action": "clarify"
     },
@@ -383,7 +382,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1382.1,
+    "latency_ms": 1143.2,
     "expected": {
       "action": "clarify"
     },
@@ -402,7 +401,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": true,
-    "latency_ms": 822.4,
+    "latency_ms": 675.9,
     "expected": {
       "action": "out_of_scope"
     },
@@ -417,7 +416,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": true,
-    "latency_ms": 819.0,
+    "latency_ms": 734.8,
     "expected": {
       "action": "out_of_scope"
     },
@@ -432,7 +431,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": true,
-    "latency_ms": 801.8,
+    "latency_ms": 671.4,
     "expected": {
       "action": "out_of_scope"
     },
@@ -447,7 +446,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": true,
-    "latency_ms": 817.2,
+    "latency_ms": 688.7,
     "expected": {
       "action": "out_of_scope"
     },
@@ -462,7 +461,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 2605.1,
+    "latency_ms": 2239.9,
     "expected": {
       "action": "book_appointment",
       "service": "consultation",
@@ -482,7 +481,7 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1986.0,
+    "latency_ms": 1708.3,
     "expected": {
       "action": "cancel_appointment"
     },
@@ -499,16 +498,16 @@
     "action_correct": true,
     "fields_correct": true,
     "exact_match": false,
-    "latency_ms": 1965.2,
+    "latency_ms": 1677.9,
     "expected": {
       "action": "check_availability"
     },
     "predicted": {
       "action": "check_availability",
-      "date": "2026-07-04",
+      "date": "2026-07-05",
       "time": "08:00"
     },
-    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-04\", \"time\": \"08:00\"}",
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-05\", \"time\": \"08:00\"}",
     "utterance": "anything tomorrow morning"
   }
 ]

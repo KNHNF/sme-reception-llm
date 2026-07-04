@@ -15,12 +15,60 @@
     "model": "llama3",
     "quant": "Q3_K_M",
     "hardware": "CPU",
-    "timestamp": "2026-07-03T07:14:49.018976",
+    "timestamp": "2026-07-03T12:53:24.109364",
     "n_samples": 30,
     "action_acc": 86.7,
     "json_valid": 100.0,
     "exact_match": 16.7,
-    "latency_p50_ms": 1721.0,
-    "latency_p95_ms": 2925.0
+    "latency_p50_ms": 1938.0,
+    "latency_p95_ms": 2605.0
+  },
+  {
+    "model": "phi3",
+    "quant": "Q4_K_M",
+    "hardware": "CPU",
+    "timestamp": "2026-07-04T11:49:39.336879",
+    "n_samples": 30,
+    "action_acc": 66.7,
+    "json_valid": 100.0,
+    "exact_match": 13.3,
+    "latency_p50_ms": 2462.0,
+    "latency_p95_ms": 3592.0
+  },
+  {
+    "model": "llama3",
+    "quant": "Q4_K_M",
+    "hardware": "CPU",
+    "timestamp": "2026-07-04T11:51:01.771484",
+    "n_samples": 30,
+    "action_acc": 83.3,
+    "json_valid": 100.0,
+    "exact_match": 16.7,
+    "latency_p50_ms": 1525.0,
+    "latency_p95_ms": 2240.0
+  },
+  {
+    "model": "llama3",
+    "quant": "F16",
+    "hardware": "CPU",
+    "timestamp": "2026-07-04T11:53:48.868093",
+    "n_samples": 30,
+    "action_acc": 80.0,
+    "json_valid": 100.0,
+    "exact_match": 20.0,
+    "latency_p50_ms": 3536.0,
+    "latency_p95_ms": 5379.0
+  },
+  {
+    "model": "llama3",
+    "quant": "Q2_K",
+    "hardware": "CPU",
+    "timestamp": "2026-07-04T11:55:16.316374",
+    "n_samples": 30,
+    "action_acc": 86.7,
+    "json_valid": 96.7,
+    "exact_match": 0.0,
+    "latency_p50_ms": 1796.0,
+    "latency_p95_ms": 2434.0
   }
 ]

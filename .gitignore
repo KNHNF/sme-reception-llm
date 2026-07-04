@@ -27,6 +27,9 @@ data/*.bak
 CLAUDE.md
 docs/
 
+# Team learning pack (kept on OneDrive, not in the public repo)
+team-pack/
+
 # Python cache
 __pycache__/
 *.pyc

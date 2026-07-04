@@ -1,0 +1,1164 @@
+[
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5239.1,
+    "input": "Please book a 60-minute consultation for 2:30 pm on June 21th.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-21",
+      "time": "14:30",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-21",
+      "time": "14:30",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-21\", \"time\": \"14:30\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5863.0,
+    "input": "Is it possible to get a follow up appointment on June 16th at 10:00 am?",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-16",
+      "time": "10:00",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-16",
+      "time": "10:00",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-16\", \"time\": \"10:00\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5098.0,
+    "input": "Is there any availability on June 19th for a consultation?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-19",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-19",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-19\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5719.0,
+    "input": "Please book a follow-up for 4:00 pm on June 27th.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-27",
+      "time": "16:00",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-27",
+      "time": "16:00",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-27\", \"time\": \"16:00\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4420.9,
+    "input": "I need to cancel my appointment, reference APT-5054.",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-5054"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-5054"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-5054\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5061.2,
+    "input": "Can I cancel the appointment on June 21th at 2:00 pm?",
+    "expected": {
+      "action": "cancel_appointment",
+      "date": "2026-06-21",
+      "time": "14:00"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "date": "2026-06-21",
+      "time": "14:00"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-06-21\", \"time\": \"14:00\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4388.0,
+    "input": "Can you cancel booking APT-6301 please?",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-6301"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-6301"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-6301\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": false,
+    "latency_ms": 4153.0,
+    "input": "I have a question about my invoice.",
+    "expected": {
+      "action": "out_of_scope"
+    },
+    "predicted": {
+      "action": "out_of_scope",
+      "missing_fields": [
+        "invoice"
+      ]
+    },
+    "raw": "{\"action\": \"out_of_scope\", \"missing_fields\": [\"invoice\"]}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4349.1,
+    "input": "Can you cancel booking APT-9664 please?",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-9664"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-9664"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-9664\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5258.8,
+    "input": "Book me in for a consultation on June 24th.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-24",
+      "time": "16:00",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-24",
+      "time": "15:00",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-24\", \"time\": \"15:00\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4604.1,
+    "input": "Can you check if Monday is free for an appointment?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-29",
+      "service": "general"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-15",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-15\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4218.5,
+    "input": "Can you cancel booking APT-9792 please?",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-9792"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-9792"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-9792\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5391.0,
+    "input": "Book me in for a follow-up on June 30th.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-30",
+      "time": "16:30",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-30",
+      "time": "15:00",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-30\", \"time\": \"15:00\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4953.8,
+    "input": "I was wondering if you have space for a consultation on July 1th.",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-07-01",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-07-01",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-07-01\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5214.8,
+    "input": "I need a slot this Wednesday at 4:00 pm please.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-17",
+      "time": "16:00",
+      "service": "general"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-25",
+      "time": "16:00",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-25\", \"time\": \"16:00\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4671.1,
+    "input": "What times are free for a consultation on Wednesday?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-10",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-15",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-15\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5476.8,
+    "input": "Could you put me down for to speak with someone on July 7th at 9:00 am?",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-07-07",
+      "time": "09:00",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-07-07",
+      "time": "09:00",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-07\", \"time\": \"09:00\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4833.0,
+    "input": "I want to cancel my June 28th appointment at 4:30 pm.",
+    "expected": {
+      "action": "cancel_appointment",
+      "date": "2026-06-28",
+      "time": "16:30"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "date": "2026-06-28",
+      "time": "16:30"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-06-28\", \"time\": \"16:30\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4449.8,
+    "input": "Please cancel my appointment, the reference is APT-8625.",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-8625"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-8625"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-8625\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5505.9,
+    "input": "Book me in for a short follow-up on July 7th.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-07-07",
+      "time": "16:00",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-07-07",
+      "time": "15:00",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-07\", \"time\": \"15:00\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": false,
+    "latency_ms": 4259.8,
+    "input": "Do you offer home visits?",
+    "expected": {
+      "action": "out_of_scope"
+    },
+    "predicted": {
+      "action": "out_of_scope",
+      "description": "We do not offer home visits."
+    },
+    "raw": "{\"action\": \"out_of_scope\", \"description\": \"We do not offer home visits.\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4462.0,
+    "input": "I need to cancel my appointment, reference APT-9866.",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-9866"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-9866"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-9866\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5765.3,
+    "input": "I need to come in for a follow up appointment, Wednesday at 9:30 am works for me.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-07-01",
+      "time": "09:30",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-17",
+      "time": "09:30",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-17\", \"time\": \"09:30\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5228.5,
+    "input": "I can't make it on Sunday at 4:30 pm, please cancel.",
+    "expected": {
+      "action": "cancel_appointment",
+      "date": "2026-07-05",
+      "time": "16:30"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "date": "2026-06-14",
+      "time": "16:30"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-06-14\", \"time\": \"16:30\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5501.5,
+    "input": "I want an initial consultation for Tuesday at 9:00 am.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-16",
+      "time": "09:00",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-23",
+      "time": "09:00",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-23\", \"time\": \"09:00\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": false,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5144.5,
+    "input": "I need an appointment on Friday at 3.",
+    "expected": {
+      "action": "clarify",
+      "missing_fields": [
+        "service"
+      ]
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-19",
+      "time": "15:00",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-19\", \"time\": \"15:00\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5390.5,
+    "input": "I want a follow up appointment for Monday at 3:00 pm.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-07-06",
+      "time": "15:00",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-15",
+      "time": "15:00",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-15\", \"time\": \"15:00\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4132.8,
+    "input": "I need to schedule something.",
+    "expected": {
+      "action": "clarify",
+      "missing_fields": [
+        "date",
+        "service"
+      ]
+    },
+    "predicted": {
+      "action": "clarify",
+      "missing_fields": [
+        "date",
+        "service"
+      ]
+    },
+    "raw": "{\"action\": \"clarify\", \"missing_fields\": [\"date\", \"service\"]}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5624.7,
+    "input": "I need to come in for a consultation, Wednesday at 2:30 pm works for me.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-24",
+      "time": "14:30",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-25",
+      "time": "14:30",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-25\", \"time\": \"14:30\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5020.2,
+    "input": "I need a consultation this Friday at 10:00 am please.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-26",
+      "time": "10:00",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-19",
+      "time": "10:00",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-19\", \"time\": \"10:00\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4472.9,
+    "input": "Are there any slots open on June 10th?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-10",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-10",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-10\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4273.0,
+    "input": "I need to cancel my appointment, reference APT-4050.",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-4050"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-4050"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-4050\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4448.9,
+    "input": "Are there any slots open on June 28th?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-28",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-28",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-28\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4708.4,
+    "input": "Do you have a slot for a consultation around June 29th?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-29",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-29",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-29\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4633.0,
+    "input": "Is there any availability on June 20th for a consultation?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-20",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-20",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-20\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5573.9,
+    "input": "Could you put me down for a general appointment on June 9th at 10:30 am?",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-09",
+      "time": "10:30",
+      "service": "general"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-09",
+      "time": "10:30",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-09\", \"time\": \"10:30\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5013.7,
+    "input": "Please cancel my booking for Friday at 4:30 pm.",
+    "expected": {
+      "action": "cancel_appointment",
+      "date": "2026-06-26",
+      "time": "16:30"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "date": "2026-06-19",
+      "time": "16:30"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-06-19\", \"time\": \"16:30\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4883.2,
+    "input": "What times are free for a follow-up on Tuesday?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-16",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-23",
+      "service": "follow-up"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-23\", \"service\": \"follow-up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4849.3,
+    "input": "Do you have anything available for a consultation on Wednesday?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-10",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-15",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-15\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4372.2,
+    "input": "I want to cancel APT-2421.",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-2421"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-2421"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-2421\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5581.6,
+    "input": "Can I schedule to speak with someone for July 6th at 4:00 pm?",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-07-06",
+      "time": "16:00",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-07-06",
+      "time": "16:00",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-06\", \"time\": \"16:00\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4790.8,
+    "input": "Do you have a slot for a follow-up around June 24th?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-24",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-24",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-24\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4702.1,
+    "input": "I need to cancel my appointment on Monday at 11:30 am.",
+    "expected": {
+      "action": "cancel_appointment",
+      "date": "2026-06-15",
+      "time": "11:30"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "date": "2026-06-22",
+      "time": "11:30"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-06-22\", \"time\": \"11:30\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5027.5,
+    "input": "I want a consultation for Thursday at 11:30 am.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-11",
+      "time": "11:30",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-25",
+      "time": "11:30",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-25\", \"time\": \"11:30\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4605.1,
+    "input": "Can you check if Saturday is free for a follow-up?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-20",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-13",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-13\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4604.3,
+    "input": "Do you have a slot for an appointment around June 19th?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-19",
+      "service": "general"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-19",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-19\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5807.7,
+    "input": "Is it possible to get a 60-minute consultation on July 1th at 2:00 pm?",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-07-01",
+      "time": "14:00",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-07-01",
+      "time": "14:00",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-07-01\", \"time\": \"14:00\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4294.3,
+    "input": "I want to cancel APT-3161.",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-3161"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-3161"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-3161\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4729.1,
+    "input": "Do you have a slot for a consultation around June 27th?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-27",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-27",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-27\", \"service\": \"consultation\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4213.0,
+    "input": "Please cancel my appointment, the reference is APT-1519.",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-1519"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-1519"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-1519\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5039.1,
+    "input": "Is there any availability on June 10th for an appointment?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-10",
+      "service": "general"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-10",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-10\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4981.9,
+    "input": "Do you have anything available for a follow-up on Friday?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-26",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-19",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-19\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4788.3,
+    "input": "Is there any availability on June 19th for a follow-up?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-06-19",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-19",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-19\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4107.4,
+    "input": "I want to cancel APT-7643.",
+    "expected": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-7643"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "appointment_id": "APT-7643"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"appointment_id\": \"APT-7643\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 5717.1,
+    "input": "Book me in for a 15-minute follow-up on June 11th.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-11",
+      "time": "15:30",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-11",
+      "time": "15:00",
+      "service": "follow_up"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-11\", \"time\": \"15:00\", \"service\": \"follow_up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": false,
+    "exact_match": false,
+    "latency_ms": 4728.8,
+    "input": "What times are free for a follow-up on Monday?",
+    "expected": {
+      "action": "check_availability",
+      "date": "2026-07-06",
+      "service": "follow_up"
+    },
+    "predicted": {
+      "action": "check_availability",
+      "date": "2026-06-15",
+      "service": "follow-up"
+    },
+    "raw": "{\"action\": \"check_availability\", \"date\": \"2026-06-15\", \"service\": \"follow-up\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5264.1,
+    "input": "Please book a slot for 4:00 pm on June 22th.",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-22",
+      "time": "16:00",
+      "service": "general"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-22",
+      "time": "16:00",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-22\", \"time\": \"16:00\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5015.4,
+    "input": "Can I schedule a general appointment for June 29th at 4:00 pm?",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-29",
+      "time": "16:00",
+      "service": "general"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-29",
+      "time": "16:00",
+      "service": "general"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-29\", \"time\": \"16:00\", \"service\": \"general\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 4536.4,
+    "input": "Can I cancel the appointment on June 28th at 4:00 pm?",
+    "expected": {
+      "action": "cancel_appointment",
+      "date": "2026-06-28",
+      "time": "16:00"
+    },
+    "predicted": {
+      "action": "cancel_appointment",
+      "date": "2026-06-28",
+      "time": "16:00"
+    },
+    "raw": "{\"action\": \"cancel_appointment\", \"date\": \"2026-06-28\", \"time\": \"16:00\"}"
+  },
+  {
+    "json_valid": true,
+    "action_correct": true,
+    "fields_correct": true,
+    "exact_match": true,
+    "latency_ms": 5037.5,
+    "input": "Can I schedule a consult for June 29th at 9:00 am?",
+    "expected": {
+      "action": "book_appointment",
+      "date": "2026-06-29",
+      "time": "09:00",
+      "service": "consultation"
+    },
+    "predicted": {
+      "action": "book_appointment",
+      "date": "2026-06-29",
+      "time": "09:00",
+      "service": "consultation"
+    },
+    "raw": "{\"action\": \"book_appointment\", \"date\": \"2026-06-29\", \"time\": \"09:00\", \"service\": \"consultation\"}"
+  }
+]

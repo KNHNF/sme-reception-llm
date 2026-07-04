@@ -42,6 +42,18 @@ import torch
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
+try:
+    import mlflow
+    _MLFLOW_AVAILABLE = True
+except ImportError:
+    _MLFLOW_AVAILABLE = False
+
+try:
+    from sklearn.metrics import precision_recall_fscore_support
+    _SKLEARN_AVAILABLE = True
+except ImportError:
+    _SKLEARN_AVAILABLE = False
+
 _SCRIPT_DIR  = Path(__file__).resolve().parent
 _PROJECT_DIR = _SCRIPT_DIR.parent
 
@@ -312,12 +324,26 @@ def evaluate(
     field_acc        = sum(s["fields_correct"] for s in per_sample) / n
     exact_match_rate = sum(s["exact_match"]    for s in per_sample) / n
 
+    action_types = ["check_availability", "book_appointment",
+                    "cancel_appointment", "clarify", "out_of_scope"]
+
+    action_prf = {}
+    if _SKLEARN_AVAILABLE:
+        y_true = [s["expected"].get("action")        for s in per_sample]
+        y_pred = [(s["predicted"] or {}).get("action") for s in per_sample]
+        p, r, f1, _ = precision_recall_fscore_support(
+            y_true, y_pred, labels=action_types, average="macro", zero_division=0,
+        )
+        action_prf = {
+            "action_precision_macro": round(float(p),  4),
+            "action_recall_macro":    round(float(r),  4),
+            "action_f1_macro":        round(float(f1), 4),
+        }
+
     lat_arr = np.array(latencies)
 
     # Per-action breakdown
     action_breakdown = {}
-    action_types = ["check_availability", "book_appointment",
-                    "cancel_appointment", "clarify", "out_of_scope"]
     for action in action_types:
         subset = [s for s in per_sample if s["expected"].get("action") == action]
         if subset:
@@ -344,9 +370,43 @@ def evaluate(
             "max":  round(float(lat_arr.max()), 2),
         },
         "action_breakdown": action_breakdown,
+        **action_prf,
     }
 
     return {"summary": summary, "per_sample": per_sample}
+
+# MLflow logging
+
+def log_run_to_mlflow(summary: dict, args, results_path: Path) -> None:
+    """Log one eval run to MLflow if installed. No-op otherwise so the pipeline never breaks."""
+    if not _MLFLOW_AVAILABLE:
+        return
+    mlflow.set_experiment("sme-reception-eval")
+    with mlflow.start_run(run_name=summary["label"]):
+        mlflow.log_params({
+            "mode":           args.mode,
+            "model_family":   args.model_family,
+            "model_id":       args.model_id,
+            "adapter":        args.adapter,
+            "n_samples":      summary["n_samples"],
+            "max_new_tokens": args.max_new_tokens,
+        })
+        lat = summary["latency_ms"]
+        mlflow.log_metrics({
+            "json_valid_rate":  summary["json_valid_rate"],
+            "action_accuracy":  summary["action_accuracy"],
+            "field_accuracy":   summary["field_accuracy"],
+            "exact_match_rate": summary["exact_match_rate"],
+            "latency_mean_ms":  lat["mean"],
+            "latency_p50_ms":   lat["p50"],
+            "latency_p95_ms":   lat["p95"],
+            "latency_p99_ms":   lat["p99"],
+            **{k: summary[k] for k in
+               ("action_precision_macro", "action_recall_macro", "action_f1_macro")
+               if k in summary},
+        })
+        if results_path.exists():
+            mlflow.log_artifact(str(results_path))
 
 # Main
 
@@ -379,6 +439,7 @@ def main():
             json.dump(results_v, f, indent=2)
         all_summaries.append(results_v["summary"])
         print_summary(results_v["summary"])
+        log_run_to_mlflow(results_v["summary"], args, out_dir / f"eval_vanilla_{mf}.json")
         del model
         torch.cuda.empty_cache()
 
@@ -395,6 +456,7 @@ def main():
             json.dump(results_ft, f, indent=2)
         all_summaries.append(results_ft["summary"])
         print_summary(results_ft["summary"])
+        log_run_to_mlflow(results_ft["summary"], args, out_dir / f"eval_finetuned_{mf}.json")
         del model
         torch.cuda.empty_cache()
 
@@ -412,6 +474,7 @@ def main():
             json.dump(results_ol, f, indent=2)
         all_summaries.append(results_ol["summary"])
         print_summary(results_ol["summary"])
+        log_run_to_mlflow(results_ol["summary"], args, out_dir / f"eval_ollama_{args.ollama_model}.json")
 
     # Comparison table
     if len(all_summaries) > 1:
@@ -431,6 +494,9 @@ def print_summary(s: dict):
     print(f"  Action accuracy:  {s['action_accuracy']:.1%}")
     print(f"  Field accuracy:   {s['field_accuracy']:.1%}")
     print(f"  Exact match:      {s['exact_match_rate']:.1%}")
+    if "action_f1_macro" in s:
+        print(f"  Action F1 (macro):{s['action_f1_macro']:.1%}  "
+              f"P={s['action_precision_macro']:.1%}  R={s['action_recall_macro']:.1%}")
     lat = s['latency_ms']
     print(f"  Latency (ms):     mean={lat['mean']}  p50={lat['p50']}  p95={lat['p95']}")
     print()
