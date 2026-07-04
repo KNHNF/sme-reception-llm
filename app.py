@@ -29,9 +29,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Pipeline loader (cached per mode string)
 @st.cache_resource(show_spinner="Loading pipeline…")
-def _load_pipeline(mode: str):
+def _load_pipeline(mode: str, family: str = "phi3"):
     from src.inference import Pipeline
-    return Pipeline(mode=mode)
+    return Pipeline(mode=mode, model_family=family)
 
 @st.cache_resource(show_spinner=False)
 def _load_tts():
@@ -110,6 +110,14 @@ def _load_stt_model():
     except Exception:
         return None
 
+# Bias STT toward the words callers actually use in this domain, and enable VAD
+# to trim silence (which stops the model repeating itself on trailing audio).
+STT_DOMAIN_PROMPT = (
+    "Appointment booking call for a clinic. Terms: book, cancel, reschedule, "
+    "appointment, consultation, follow-up, availability, "
+    "Monday Tuesday Wednesday Thursday Friday, morning, afternoon."
+)
+
 def transcribe_uploaded_audio(audio_bytes: bytes) -> str | None:
     """Transcribe WAV bytes from st.audio_input using Faster-Whisper."""
     model = _load_stt_model()
@@ -120,7 +128,10 @@ def transcribe_uploaded_audio(audio_bytes: bytes) -> str | None:
         f.write(audio_bytes)
         path = f.name
     try:
-        segments, _ = model.transcribe(path, language="en")
+        segments, _ = model.transcribe(
+            path, language="en", vad_filter=True,
+            initial_prompt=STT_DOMAIN_PROMPT,
+        )
         return " ".join(s.text for s in segments).strip()
     except Exception:
         return None
@@ -133,7 +144,6 @@ def transcribe_uploaded_audio(audio_bytes: bytes) -> str | None:
 # Page config
 st.set_page_config(
     page_title="SME AI Voice Assistant",
-    page_icon="📞",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -200,9 +210,9 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 # No Kaggle needed. Kaggle was training only. Running uses the saved adapters locally.
 # Vanilla modes are not in the Pipeline class (eval-only scripts); excluded here.
 MODEL_OPTIONS = {
-    "Mock (rule-based, instant)":        ("mock",   "pill-mock", "Mock"),
-    "Llama 3.2 fine-tuned (99.8%)":     ("llama3", "pill-ft",   "Llama 3.2 FT"),
-    "Phi-3 mini fine-tuned (98.1%)":    ("phi3",   "pill-ft",   "Phi-3 FT"),
+    "Mock (rule-based, instant)":          ("mock", "phi3",   "pill-mock", "Mock"),
+    "Llama 3.2 CPU (Q4_K_M, real model)":  ("cpu",  "llama3", "pill-ft",   "Llama 3.2 CPU"),
+    "Phi-3 mini CPU (real model)":         ("cpu",  "phi3",   "pill-ft",   "Phi-3 CPU"),
 }
 
 # Session state
@@ -227,6 +237,11 @@ def _init():
         st.session_state.model_key = _DEFAULT_MODEL
 _init()
 
+# Booking toast, fired on the rerun after a slot was booked in the previous turn.
+_just_booked = st.session_state.pop("just_booked", None)
+if _just_booked:
+    st.toast(f"Appointment booked: {_just_booked}", icon="✅")
+
 def new_session():
     keys = ["messages","session_id","caller","turn_count","latencies","call_ended","pending_in"]
     for k in keys:
@@ -245,12 +260,91 @@ BADGES = {
 }
 
 def badge_html(action_str):
-    lbl, cls = BADGES.get(action_str, (action_str or "?", "badge-default"))
+    if not action_str:
+        return ""
+    lbl, cls = BADGES.get(action_str, (action_str, "badge-default"))
     return f'<span class="badge {cls}">{lbl}</span>'
 
 def avg_lat():
     lats = st.session_state.latencies
     return sum(lats) / len(lats) if lats else 0
+
+# Calendar + metrics panels (demo evidence).
+# Booking is performed inside the pipeline (src/inference.py calls book_slot),
+# which writes data/calendar.json. We diff the booked slots around each turn to
+# detect a new booking, so this works in mock, CPU and API mode alike.
+import json
+import datetime as _dt
+
+_CAL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "calendar.json")
+
+def _load_calendar() -> dict:
+    try:
+        with open(_CAL_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {"slots": []}
+
+def _booked_slots() -> set:
+    data = _load_calendar()
+    return {(s["date"], s["time"], s["service"])
+            for s in data.get("slots", []) if not s.get("available", True)}
+
+def _fmt_booking(date: str, time: str, service: str) -> str:
+    try:
+        d = _dt.datetime.strptime(date, "%Y-%m-%d")
+        t = _dt.datetime.strptime(time, "%H:%M")
+        day = f"{d.strftime('%A')} {d.day} {d.strftime('%B')}"
+        return f"{service.replace('_', ' ')} on {day} at {t.strftime('%I:%M %p').lstrip('0')}"
+    except Exception:
+        return f"{service} on {date} at {time}"
+
+def render_calendar_panel():
+    import pandas as pd
+    data = _load_calendar()
+    slots = data.get("slots", [])
+    booked = [s for s in slots if not s.get("available", True)]
+    st.caption(f"{data.get('business_name', 'The practice')} - "
+               f"{data.get('opening_hours', 'Monday to Friday, 9am to 5pm')}")
+    if not booked:
+        st.info("No appointments booked yet. Book one in the conversation to see it appear here.")
+        return
+    rows = [{"Date": s["date"], "Time": s["time"], "Service": s["service"].replace("_", " ")}
+            for s in sorted(booked, key=lambda x: (x["date"], x["time"]))]
+    st.markdown(f"**Booked appointments ({len(rows)})**")
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+def render_metrics_panel():
+    import pandas as pd
+    try:
+        from src.metrics_logger import get_metrics
+        m = get_metrics()
+    except Exception as e:
+        st.warning(f"Metrics unavailable: {e}")
+        return
+    if not m.get("total"):
+        st.info("No turns logged yet. Have a conversation to populate metrics.")
+        return
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Turns logged", m["total"])
+    c2.metric("Schema-valid %", f"{m['accuracy']}%")
+    c3.metric("P50 ms", f"{m['latency_p50']:.0f}")
+    c4.metric("P95 ms", f"{m['latency_p95']:.0f}")
+    st.caption("Schema-valid % is the share of turns that produced a schema-valid action. "
+               "It is not action accuracy against ground truth, which needs a labelled test set.")
+    pa = m.get("per_action", {})
+    rows = [{"Action": k, "Count": v["count"], "Valid": v["correct"], "Valid %": v["accuracy"]}
+            for k, v in pa.items() if v["count"]]
+    if rows:
+        st.markdown("**Per-action**")
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    recent = m.get("recent", [])
+    if recent:
+        st.markdown("**Recent turns**")
+        rr = [{"Utterance": r["utterance"], "Action": r["action"],
+               "Valid": "yes" if r["validated"] else "no",
+               "ms": f"{(r['latency_ms'] or 0):.0f}"} for r in recent]
+        st.dataframe(pd.DataFrame(rr), use_container_width=True, hide_index=True)
 
 # Sidebar
 with st.sidebar:
@@ -267,13 +361,13 @@ with st.sidebar:
         new_session()
         st.rerun()
 
-    mode_str, pill_cls, pill_label = MODEL_OPTIONS[chosen]
+    mode_str, family_str, pill_cls, pill_label = MODEL_OPTIONS[chosen]
     is_real_model = mode_str not in ("mock",)
 
     if is_real_model:
         st.warning(
-            "Loads QLoRA adapter from checkpoints/. "
-            "First load: ~30s on CPU. No Kaggle needed, training is already done.",
+            "Uses the local llama.cpp server. Start it first in a terminal:\n\n"
+            "`python scripts/03_cpu_server.py --model llama3 --quant Q4_K_M`",
             icon="⚠️"
         )
 
@@ -318,11 +412,11 @@ with st.sidebar:
         new_session(); st.rerun()
 
 # Load pipeline for chosen mode
-mode_str, pill_cls, pill_label = MODEL_OPTIONS[st.session_state.model_key]
+mode_str, family_str, pill_cls, pill_label = MODEL_OPTIONS[st.session_state.model_key]
 pipeline = None
 embed_err = None
 try:
-    pipeline = _load_pipeline(mode_str)
+    pipeline = _load_pipeline(mode_str, family_str)
     EMBEDDED = True
 except Exception as e:
     EMBEDDED = False
@@ -353,63 +447,103 @@ for i,(label,tip,star) in enumerate(phases):
 pipe_html += "</div>"
 st.markdown(pipe_html, unsafe_allow_html=True)
 
-if embed_err:
-    if "cannot import name" in embed_err and "transformers" in embed_err:
-        st.error(
-            f"Broken transformers install: `{embed_err}`\n\n"
-            "Run this in a terminal, then restart Streamlit:\n"
-            "```\npip install --upgrade transformers\n```"
-        )
-    elif "checkpoints" in embed_err or "No such file" in embed_err:
-        st.error(
-            f"Adapter weights not found: `{embed_err}`\n\n"
-            "The fine-tuned adapters must be in `checkpoints/sme-phi3-qlora/` or "
-            "`checkpoints/sme-llama3-qlora/`. Check the folder exists."
-        )
-    elif "gated" in embed_err.lower() or "401" in embed_err or "token" in embed_err.lower():
-        st.error(
-            f"HuggingFace authentication required: `{embed_err}`\n\n"
-            "1. Accept the licence at huggingface.co/meta-llama/Llama-3.2-3B-Instruct\n"
-            "2. Run `huggingface-cli login` in a terminal\n"
-            "3. Re-select the model"
-        )
-    else:
-        st.error(f"Could not load model: {embed_err}")
+# Main area: conversation on the left, calendar and metrics on the right
+col_chat, col_side = st.columns([3, 2], gap="large")
 
-# Chat area
-if not st.session_state.messages:
-    st.markdown("""<div style="text-align:center;padding:2.5rem;color:#94A3B8">
-      <div style="font-size:2rem">📞</div>
-      <div style="margin-top:.5rem">
-        Type a message below to begin a call session.
-      </div></div>""", unsafe_allow_html=True)
+with col_side:
+    st.markdown("##### Calendar")
+    render_calendar_panel()
+    st.markdown("##### Live metrics")
+    render_metrics_panel()
 
-for msg in st.session_state.messages:
-    if msg["role"] == "user":
-        st.markdown(f'<div class="user-bubble"><div class="turn-meta">YOU</div>{msg["content"]}</div>',
-                    unsafe_allow_html=True)
-    else:
-        action_str = msg.get("action_str", "")
-        latency    = msg.get("latency_ms")
-        entities   = msg.get("entities", {})
-        lat_html   = (f'<span style="font-size:.7rem;color:#94A3B8;margin-left:.4rem">{latency:.0f} ms</span>'
-                      if latency else "")
-        ent_html   = ""
-        if entities:
-            tags = [f'<span class="entity-tag">{k}: {v}</span>' for k,v in entities.items() if v]
-            if tags:
-                ent_html = '<div style="margin-top:.35rem">' + " ".join(tags) + "</div>"
+with col_chat:
+    if embed_err:
+        if "cannot import name" in embed_err and "transformers" in embed_err:
+            st.error(
+                f"Broken transformers install: `{embed_err}`\n\n"
+                "Run this in a terminal, then restart Streamlit:\n"
+                "```\npip install --upgrade transformers\n```"
+            )
+        elif "checkpoints" in embed_err or "No such file" in embed_err:
+            st.error(
+                f"Adapter weights not found: `{embed_err}`\n\n"
+                "The fine-tuned adapters must be in `checkpoints/sme-phi3-qlora/` or "
+                "`checkpoints/sme-llama3-qlora/`. Check the folder exists."
+            )
+        elif "gated" in embed_err.lower() or "401" in embed_err or "token" in embed_err.lower():
+            st.error(
+                f"HuggingFace authentication required: `{embed_err}`\n\n"
+                "1. Accept the licence at huggingface.co/meta-llama/Llama-3.2-3B-Instruct\n"
+                "2. Run `huggingface-cli login` in a terminal\n"
+                "3. Re-select the model"
+            )
+        else:
+            st.error(f"Could not load model: {embed_err}")
+
+    _state = ("Call ended" if st.session_state.call_ended
+              else "In call" if st.session_state.turn_count else "Ready")
+    _state_color = ("#EF4444" if _state == "Call ended"
+                    else "#02C39A" if _state == "In call" else "#94A3B8")
+    st.markdown(
+        f'<div style="font-size:.75rem;font-weight:700;color:{_state_color};'
+        f'margin-bottom:.5rem">&#9679; {_state}</div>',
+        unsafe_allow_html=True)
+
+    # Voice input at the top of the conversation so it is visible without scrolling.
+    if not st.session_state.call_ended and not (embed_err and not EMBEDDED):
+        _stt_model = _load_stt_model()
+        if _stt_model is not None:
+            try:
+                import hashlib as _hashlib
+                _mic_key = f"mic_{st.session_state.get('turn_count', 0)}"
+                audio_val = st.audio_input("Speak your message", key=_mic_key)
+                if audio_val is not None:
+                    _raw = audio_val.read()
+                    _audio_hash = _hashlib.md5(_raw).hexdigest()
+                    if _audio_hash != st.session_state.get("_last_audio_hash"):
+                        st.session_state["_last_audio_hash"] = _audio_hash
+                        with st.spinner("Transcribing..."):
+                            _mt = transcribe_uploaded_audio(_raw)
+                        if _mt:
+                            st.session_state.pending_in = _mt
+                            st.caption(f"Heard: {_mt}")
+            except AttributeError:
+                pass
+
+    if not st.session_state.messages:
         st.markdown(
-            f'<div class="asst-bubble">'
-            f'<div class="turn-meta">ASSISTANT {badge_html(action_str)}{lat_html}</div>'
-            f'{msg["content"]}{ent_html}</div>',
+            '<div style="padding:2rem 0;color:#94A3B8">'
+            'Speak above or type below to begin the call.</div>',
             unsafe_allow_html=True)
-        if msg.get("audio"):
-            st.markdown(audio_html(msg["audio"]), unsafe_allow_html=True)
 
-if st.session_state.call_ended:
-    st.markdown('<div class="end-banner">Call ended. Click New call to start again.</div>',
+    # Newest exchange first, so the latest receptionist reply sits under the mic
+    # and you do not scroll to follow the conversation.
+    for msg in reversed(st.session_state.messages):
+        if msg["role"] == "user":
+            st.markdown(f'<div class="user-bubble"><div class="turn-meta">YOU</div>{msg["content"]}</div>',
+                        unsafe_allow_html=True)
+        else:
+            action_str = msg.get("action_str", "")
+            latency    = msg.get("latency_ms")
+            entities   = msg.get("entities", {})
+            lat_html   = (f'<span style="font-size:.7rem;color:#94A3B8;margin-left:.4rem">{latency:.0f} ms</span>'
+                          if latency else "")
+            ent_html   = ""
+            if entities:
+                tags = [f'<span class="entity-tag">{k}: {v}</span>' for k,v in entities.items() if v]
+                if tags:
+                    ent_html = '<div style="margin-top:.35rem">' + " ".join(tags) + "</div>"
+            st.markdown(
+                f'<div class="asst-bubble">'
+                f'<div class="turn-meta">ASSISTANT {badge_html(action_str)}{lat_html}</div>'
+                f'{msg["content"]}{ent_html}</div>',
                 unsafe_allow_html=True)
+            if msg.get("audio"):
+                st.markdown(audio_html(msg["audio"]), unsafe_allow_html=True)
+
+    if st.session_state.call_ended:
+        st.markdown('<div class="end-banner">Call ended. Click New call to start again.</div>',
+                    unsafe_allow_html=True)
 
 # Input
 if embed_err and not EMBEDDED:
@@ -419,36 +553,21 @@ elif not st.session_state.call_ended:
     if pending:
         st.session_state.pending_in = None
 
-    # Mic input (requires Streamlit >= 1.31 and faster-whisper installed)
-    # Guard: hash audio bytes so Streamlit reruns don't re-transcribe the same clip.
-    _stt_model = _load_stt_model()
-    mic_text = None
-    if _stt_model is not None:
-        try:
-            import hashlib as _hashlib
-            # Key changes each turn -> widget reinitialises cleanly, no stale error state
-            _mic_key = f"mic_{st.session_state.get('turn_count', 0)}"
-            audio_val = st.audio_input("🎤 Speak your message", key=_mic_key)
-            if audio_val is not None:
-                _raw = audio_val.read()
-                _audio_hash = _hashlib.md5(_raw).hexdigest()
-                if _audio_hash != st.session_state.get("_last_audio_hash"):
-                    st.session_state["_last_audio_hash"] = _audio_hash
-                    with st.spinner("Transcribing..."):
-                        mic_text = transcribe_uploaded_audio(_raw)
-                    if mic_text:
-                        st.caption(f"Heard: *{mic_text}*")
-        except AttributeError:
-            pass  # Streamlit < 1.31, no audio_input, silently skip
-
-    user_input = st.chat_input("Type your message...") or mic_text or pending
+    # Voice input is rendered at the top of the conversation column above and
+    # feeds in via pending_in. The text box stays pinned at the bottom.
+    user_input = st.chat_input("Type your message...") or pending
 
     if user_input:
         st.session_state.messages.append({"role": "user", "content": user_input})
         st.session_state.turn_count += 1
 
+        booked_before = _booked_slots()
         with st.spinner("Processing..."):
             data, err = run_turn(user_input, st.session_state.session_id)
+        _new_booked = _booked_slots() - booked_before
+        if _new_booked:
+            _bd, _bt, _bs = sorted(_new_booked)[0]
+            st.session_state["just_booked"] = _fmt_booking(_bd, _bt, _bs)
 
         if err:
             st.session_state.messages.append({

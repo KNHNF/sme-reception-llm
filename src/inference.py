@@ -49,6 +49,20 @@ except ImportError:
     from sme_action_schema import ActionOutput, render_confirmation
     from calendar_store import get_next_slot, book_slot, describe_slot, _ordinal
 
+
+def _save_message(session_id: str, caller_name, text: str) -> None:
+    """Append a caller message to a local file. Offline, no cloud, no Supabase."""
+    import json, time
+    path = Path(__file__).parent.parent / "data" / "messages.jsonl"
+    row = {"ts": time.time(), "session_id": session_id,
+           "caller": caller_name, "message": text}
+    try:
+        with path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
 SYSTEM_PROMPT = (
     "Appointment assistant. Output one JSON object only. "
     "Actions: book_appointment, check_availability, cancel_appointment, clarify, out_of_scope. "
@@ -277,6 +291,16 @@ class Pipeline:
             end_call = is_terminal_strike(session.profanity_strikes)
             return self._quick(utterance, spoken, end_call, session, t0)
 
+        # 0b-2. Voicemail capture: if we asked for a message, this utterance IS it.
+        if getattr(session, "awaiting_message", False):
+            _save_message(session_id, session.caller_name, utterance)
+            session.awaiting_message = False
+            session.touch()
+            name_part = f", {session.caller_name}" if session.caller_name else ""
+            spoken = (f"Thank you{name_part}. I've taken your message and a member of the "
+                      "team will call you back. Is there anything else I can help you with?")
+            return self._quick(utterance, spoken, False, session, t0)
+
         # 0c. Human transfer request
         # If caller asks to speak to a real person, acknowledge and route out.
         # In a deployed system this would trigger a SIP transfer; in the demo
@@ -295,6 +319,38 @@ class Pipeline:
                 "Please hold for a moment."
             )
             return self._quick(utterance, spoken, True, session, t0)
+
+        # 0c-b. Reschedule / modify an existing booking.
+        # The system does not change existing appointments, so instead of failing
+        # with "I could not process that", offer the supported alternatives.
+        # Guarded by pending_suggestion so it never hijacks live slot negotiation
+        # (where "another day" means "offer me a different slot").
+        _RESCHEDULE = {
+            "reschedule", "move my appointment", "move the appointment",
+            "move my booking", "change my appointment", "change the appointment",
+            "change my booking", "rearrange", "make it later", "make it earlier",
+            "a few days later", "do it later", "push it back", "push it to",
+        }
+        if not session.pending_suggestion and any(r in _u for r in _RESCHEDULE):
+            spoken = (
+                "I'm not able to change an existing booking on this automated line. "
+                "I can cancel that appointment and book a new time for you, or take a "
+                "message for a member of the team to call you back. "
+                "Would you like me to cancel and rebook?"
+            )
+            return self._quick(utterance, spoken, False, session, t0)
+
+        # 0c-c. Take a message for the human team (offline, stored locally).
+        _MESSAGE_INTENT = {
+            "leave a message", "take a message", "call me back", "have someone call",
+            "leave a note", "pass a message", "get someone to call", "call me later",
+        }
+        if any(m in _u for m in _MESSAGE_INTENT):
+            session.awaiting_message = True
+            session.touch()
+            spoken = ("Of course. Please tell me your message and the best number to reach "
+                      "you on, and I'll pass it to the team.")
+            return self._quick(utterance, spoken, False, session, t0)
 
         # 0d. Distress / emergency detection
         # Do NOT escalate these through the booking flow - acknowledge
@@ -649,11 +705,32 @@ class Pipeline:
                 }
         elif validated:
             session.confusion_count = 0   # reset on any successful action
-            # For direct book_appointment (model returned specific date+time+service),
-            # actually write to the calendar - render_confirmation is text-only.
             if validated.action.value == "book_appointment":
-                book_slot(validated.date, validated.time, validated.service.value)
-            spoken = render_confirmation(validated)
+                # Guard against booking invented details. Only write to the calendar
+                # when the caller actually gave a date AND a time (spaCy-resolved).
+                # Otherwise propose a real slot and confirm first, reusing the
+                # pending_suggestion yes/no flow. Stops the model booking a
+                # hallucinated slot from a vague "book an appointment".
+                has_date = bool(entities.get("date_resolved"))
+                has_time = bool(entities.get("time_resolved"))
+                if has_date and has_time:
+                    book_slot(validated.date, validated.time, validated.service.value)
+                    spoken = render_confirmation(validated)
+                else:
+                    svc = validated.service.value if getattr(validated, "service", None) else None
+                    slot = get_next_slot(service=svc,
+                                         preferred_date=(validated.date if has_date else None))
+                    if slot:
+                        session.pending_suggestion = slot
+                        session.touch()
+                        name_part = f", {session.caller_name}" if session.caller_name else ""
+                        spoken = (f"Of course{name_part}. The next available slot is "
+                                  f"{describe_slot(slot)}. Does that work for you?")
+                    else:
+                        spoken = ("Of course. Which day and time would you like, and is it a "
+                                  "general appointment, a consultation, or a follow-up?")
+            else:
+                spoken = render_confirmation(validated)
         else:
             spoken = "I could not process that. Could you repeat?"
 
@@ -754,6 +831,7 @@ class Pipeline:
             "temperature": 0,
             "stop":        stop,
             "stream":      False,
+            "cache_prompt": True,
         }).encode()
 
         req = urllib.request.Request(

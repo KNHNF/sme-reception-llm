@@ -11,38 +11,10 @@
     "fields_acc": 68.3,
     "exact_match": 68.3,
     "action_f1_macro": 100.0,
-    "latency_p50_ms": 8329.0,
-    "latency_p95_ms": 10516.0
-  },
-  {
-    "model": "llama3",
-    "quant": "Q4_K_M",
-    "hardware": "CPU",
-    "harness": "aligned_sme_test",
-    "n_samples": 60,
-    "timestamp": "2026-07-04T13:26:26.200410",
-    "action_acc": 100.0,
-    "json_valid": 100.0,
-    "fields_acc": 63.3,
-    "exact_match": 63.3,
-    "action_f1_macro": 100.0,
-    "latency_p50_ms": 4612.0,
-    "latency_p95_ms": 6450.0
-  },
-  {
-    "model": "llama3",
-    "quant": "Q3_K_M",
-    "hardware": "CPU",
-    "harness": "aligned_sme_test",
-    "n_samples": 60,
-    "timestamp": "2026-07-04T13:32:37.626907",
-    "action_acc": 98.3,
-    "json_valid": 100.0,
-    "fields_acc": 65.0,
-    "exact_match": 65.0,
-    "action_f1_macro": 92.9,
-    "latency_p50_ms": 5918.0,
-    "latency_p95_ms": 7630.0
+    "latency_p50_ms": 7468.0,
+    "latency_p95_ms": 8825.0,
+    "latency_clean": true,
+    "latency_measured_at": "2026-07-04T18:42:47.910386"
   },
   {
     "model": "llama3",
@@ -56,8 +28,10 @@
     "fields_acc": 60.0,
     "exact_match": 56.7,
     "action_f1_macro": 92.9,
-    "latency_p50_ms": 4883.0,
-    "latency_p95_ms": 5765.0
+    "latency_p50_ms": 4615.0,
+    "latency_p95_ms": 5295.0,
+    "latency_clean": true,
+    "latency_measured_at": "2026-07-04T18:47:46.639460"
   },
   {
     "model": "phi3",
@@ -71,8 +45,10 @@
     "fields_acc": 61.7,
     "exact_match": 61.7,
     "action_f1_macro": 92.9,
-    "latency_p50_ms": 11186.0,
-    "latency_p95_ms": 13775.0
+    "latency_p50_ms": 10828.0,
+    "latency_p95_ms": 12975.0,
+    "latency_clean": true,
+    "latency_measured_at": "2026-07-04T19:09:55.180816"
   },
   {
     "model": "phi3",
@@ -86,23 +62,10 @@
     "fields_acc": 63.3,
     "exact_match": 63.3,
     "action_f1_macro": 92.9,
-    "latency_p50_ms": 6538.0,
-    "latency_p95_ms": 10838.0
-  },
-  {
-    "model": "phi3",
-    "quant": "Q3_K_M",
-    "hardware": "CPU",
-    "harness": "aligned_sme_test",
-    "n_samples": 60,
-    "timestamp": "2026-07-04T14:04:16.486198",
-    "action_acc": 100.0,
-    "json_valid": 100.0,
-    "fields_acc": 60.0,
-    "exact_match": 60.0,
-    "action_f1_macro": 100.0,
-    "latency_p50_ms": 7838.0,
-    "latency_p95_ms": 10571.0
+    "latency_p50_ms": 6112.0,
+    "latency_p95_ms": 7295.0,
+    "latency_clean": true,
+    "latency_measured_at": "2026-07-04T19:32:57.648064"
   },
   {
     "model": "phi3",
@@ -116,7 +79,60 @@
     "fields_acc": 21.7,
     "exact_match": 18.3,
     "action_f1_macro": 43.2,
-    "latency_p50_ms": 7694.0,
-    "latency_p95_ms": 23339.0
+    "latency_p50_ms": 7739.0,
+    "latency_p95_ms": 11075.0,
+    "latency_clean": true,
+    "latency_measured_at": "2026-07-04T19:18:24.926753"
+  },
+  {
+    "model": "llama3",
+    "quant": "Q4_K_M",
+    "hardware": "CPU",
+    "harness": "aligned_sme_test",
+    "n_samples": 60,
+    "timestamp": "2026-07-04T17:36:15.153629",
+    "action_acc": 100.0,
+    "json_valid": 100.0,
+    "fields_acc": 63.3,
+    "exact_match": 63.3,
+    "action_f1_macro": 100.0,
+    "latency_p50_ms": 3885.0,
+    "latency_p95_ms": 4591.0,
+    "latency_clean": true,
+    "latency_measured_at": "2026-07-04T18:58:13.140257"
+  },
+  {
+    "model": "llama3",
+    "quant": "Q3_K_M",
+    "hardware": "CPU",
+    "harness": "aligned_sme_test",
+    "n_samples": 60,
+    "timestamp": "2026-07-04T17:42:19.390146",
+    "action_acc": 98.3,
+    "json_valid": 100.0,
+    "fields_acc": 65.0,
+    "exact_match": 65.0,
+    "action_f1_macro": 92.9,
+    "latency_p50_ms": 5844.0,
+    "latency_p95_ms": 6673.0,
+    "latency_clean": true,
+    "latency_measured_at": "2026-07-04T18:54:01.787639"
+  },
+  {
+    "model": "phi3",
+    "quant": "Q3_K_M",
+    "hardware": "CPU",
+    "harness": "aligned_sme_test",
+    "n_samples": 60,
+    "timestamp": "2026-07-04T17:49:44.869376",
+    "action_acc": 100.0,
+    "json_valid": 100.0,
+    "fields_acc": 60.0,
+    "exact_match": 60.0,
+    "action_f1_macro": 100.0,
+    "latency_p50_ms": 7331.0,
+    "latency_p95_ms": 8623.0,
+    "latency_clean": true,
+    "latency_measured_at": "2026-07-04T19:26:17.616530"
   }
 ]

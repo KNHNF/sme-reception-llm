@@ -400,6 +400,74 @@ def test_session_reuse_after_booking(p):
     ])
 
 
+def test_no_book_without_details(p):
+    print("\n Vague booking must not book invented details")
+
+    # "book an appointment" with no date/time/service must NOT silently book.
+    # It should propose a real slot and ask for confirmation first.
+    s = sid()
+    run(p, s, [
+        ("Hello", {}),
+        ("Ali Hassan", {}),
+        ("Yes", {}),
+        ("I want to book a new appointment", {
+            "must_not_contain": ["I have booked", "booked your", "booked a"],
+            "must_contain": ["work for you"],
+        }),
+    ])
+
+    # A vague "book something" is still a proposal, never a silent booking.
+    s = sid()
+    run(p, s, [
+        ("Hello", {}),
+        ("Sam Brown", {}),
+        ("Yes", {}),
+        ("Can I book an appointment please", {
+            "must_not_contain": ["I have booked", "booked your"],
+        }),
+    ])
+
+
+def test_reschedule_graceful(p):
+    print("\n Reschedule / modify must not fail with 'could not process'")
+
+    phrases = [
+        "I want to reschedule my appointment",
+        "Can you move my appointment to another day",
+        "Can you make it a few days later",
+        "Actually can you do it later",
+    ]
+    for phrase in phrases:
+        s = sid()
+        run(p, s, [
+            ("Hello", {}),
+            ("Ali Hassan", {}),
+            ("Yes", {}),
+            (phrase, {
+                "must_not_contain": ["could not process", "did not quite catch"],
+                "must_contain": ["cancel"],
+            }),
+        ])
+
+
+def test_voicemail(p):
+    print("\n Voicemail / take a message")
+
+    s = sid()
+    run(p, s, [
+        ("Hello", {}),
+        ("Ali Hassan", {}),
+        ("Yes", {}),
+        ("Can you take a message", {
+            "must_contain": ["message"],
+            "must_not_contain": ["could not process"],
+        }),
+        ("Please ask the team to call me back on 07123456789", {
+            "must_contain": ["taken your message"],
+        }),
+    ])
+
+
 def test_rapid_fire_same_session(p):
     print("\n Rapid fire turns (no crashes)")
 
@@ -440,6 +508,9 @@ def main():
     test_service_not_in_catalog(p)
     test_ambiguous_confirmation(p)
     test_session_reuse_after_booking(p)
+    test_no_book_without_details(p)
+    test_reschedule_graceful(p)
+    test_voicemail(p)
     test_rapid_fire_same_session(p)
 
     passed = sum(results)

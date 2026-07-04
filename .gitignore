@@ -10,6 +10,10 @@ tools/
 # Evaluation raw results and HuggingFace metadata
 evaluation/eval_results/
 evaluation/results/
+
+# Real audio recordings: personal data (voices, demographics, IP in metadata).
+# NEVER commit to the public repo. Only aggregate scores under real_audio_results/.
+evaluation/real_audio/
 evaluation/__huggingface_repos__.json
 __huggingface_repos__.json
 
@@ -41,6 +45,9 @@ __pycache__/
 venv/
 .venv/
 
+# Claude Code local config
+.claude/
+
 # Secrets
 .env
 *.env
@@ -57,3 +64,6 @@ docs/
 *.docx
 *.pdf
 data/metrics.db
+
+# Caller voicemail messages (personal data, local only)
+data/messages.jsonl
