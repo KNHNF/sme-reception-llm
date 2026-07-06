@@ -59,6 +59,8 @@ SERVICE_DURATION = {
 class TurnRequest(BaseModel):
     session_id: str
     utterance: str
+    consent: bool = False
+    source: str = "text"
 
 class BookRequest(BaseModel):
     date: str          # ISO 8601
@@ -112,9 +114,11 @@ def pipeline_turn(req: TurnRequest):
     # Log metrics
     try:
         log_turn, _, _ = _get_logger()
+        # Without consent, never persist the transcript text. Aggregate metrics
+        # (action, latency) still count, but the caller's words are not stored.
         log_turn(
             session_id=req.session_id,
-            utterance=req.utterance,
+            utterance=req.utterance if req.consent else "[not recorded]",
             action=result.get("action"),
             validated=result.get("validated", False),
             latency_ms=result.get("latency_ms", 0),
@@ -122,7 +126,34 @@ def pipeline_turn(req: TurnRequest):
     except Exception:
         pass  # Never let metrics break the pipeline
 
+    # Record the call locally (transcript + outcome) when the caller has consented.
+    if req.consent:
+        try:
+            from src.call_log import log_call
+            booking = None
+            if result.get("booking_id"):
+                booking = {"appointment_id": result["booking_id"],
+                           "details": result.get("action")}
+            log_call(
+                session_id=req.session_id,
+                transcript=req.utterance,
+                action=result.get("action"),
+                spoken_reply=result.get("spoken", ""),
+                booking=booking,
+                consent=req.consent,
+                source=req.source,
+            )
+        except Exception:
+            pass  # Never let call logging break the pipeline
+
     return result
+
+
+@app.get("/calls")
+def list_call_records(limit: int = 50):
+    """Local call records (transcript and outcome). Personal data, never leaves the machine."""
+    from src.call_log import list_calls
+    return {"calls": list_calls(limit)}
 
 @app.get("/metrics")
 def metrics_endpoint():

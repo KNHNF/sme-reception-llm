@@ -468,6 +468,39 @@ def test_voicemail(p):
     ])
 
 
+def test_cancel_to_human(p):
+    print("\n Cancel is handed to a human, never faked")
+
+    s = sid()
+    run(p, s, [
+        ("Hello", {}),
+        ("Ali Hassan", {}),
+        ("Yes", {}),
+        ("I need to cancel my appointment on the 25th", {
+            "must_contain": ["reception"],
+            "must_not_contain": ["has been cancelled", "could not process"],
+        }),
+    ])
+
+
+def test_end_call(p):
+    print("\n Goodbye ends the call, not out_of_scope")
+
+    for bye in ["no that's all, goodbye", "goodbye", "that's all thanks", "no thank you"]:
+        s = sid()
+        p.run("Hello", s); p.run("Ali Hassan", s); p.run("Yes", s)
+        try:
+            r = p.run(bye, s)
+            ok = r.get("end_call") is True and "goodbye" in r.get("spoken", "").lower()
+            detail = f"end_call={r.get('end_call')}, spoken={r.get('spoken','')[:45]!r}"
+        except Exception as e:
+            ok, detail = False, str(e)
+        print(f"  {PASS if ok else FAIL} {bye!r} ends the call")
+        if not ok:
+            print(f"       {detail}")
+        results.append(ok)
+
+
 def test_rapid_fire_same_session(p):
     print("\n Rapid fire turns (no crashes)")
 
@@ -511,6 +544,8 @@ def main():
     test_no_book_without_details(p)
     test_reschedule_graceful(p)
     test_voicemail(p)
+    test_cancel_to_human(p)
+    test_end_call(p)
     test_rapid_fire_same_session(p)
 
     passed = sum(results)

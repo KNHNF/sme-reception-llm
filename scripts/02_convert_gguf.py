@@ -40,6 +40,22 @@ CONFIGS = {
         "merged_path": ROOT / "checkpoints" / "merged" / "llama3",
         "gguf_f16":    GGUF_DIR / "llama3-f16.gguf",
     },
+    "llama1b": {
+        "merged_path": ROOT / "checkpoints" / "merged" / "llama1b",
+        "gguf_f16":    GGUF_DIR / "llama1b-f16.gguf",
+    },
+    "qwen0.5b": {
+        "merged_path": ROOT / "checkpoints" / "merged" / "qwen0.5b",
+        "gguf_f16":    GGUF_DIR / "qwen0.5b-f16.gguf",
+    },
+    "qwen1.5b": {
+        "merged_path": ROOT / "checkpoints" / "merged" / "qwen1.5b",
+        "gguf_f16":    GGUF_DIR / "qwen1.5b-f16.gguf",
+    },
+    "smol360": {
+        "merged_path": ROOT / "checkpoints" / "merged" / "smol360",
+        "gguf_f16":    GGUF_DIR / "smol360-f16.gguf",
+    },
 }
 
 
@@ -192,7 +208,7 @@ def quantize(f16_path: Path, q_path: Path, quant_type: str):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=["phi3", "llama3"], required=True)
+    parser.add_argument("--model", choices=["phi3", "llama3", "llama1b", "qwen0.5b", "qwen1.5b", "smol360"], required=True)
     parser.add_argument("--quant", default="Q3_K_M",
                         help="Quantization type: Q2_K, Q3_K_M, Q4_K_M, Q5_K_M, Q8_0 (default: Q3_K_M)")
     args = parser.parse_args()

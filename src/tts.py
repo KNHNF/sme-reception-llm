@@ -24,7 +24,7 @@ from pathlib import Path
 
 _HERE       = Path(__file__).resolve().parent.parent
 PIPER_EXE   = _HERE / "piper" / "piper.exe"
-PIPER_MODEL = _HERE / "piper" / "en_US-lessac-medium.onnx"
+PIPER_MODEL = _HERE / "piper" / "en_US-ryan-high.onnx"
 
 class TTS:
     def __init__(self):

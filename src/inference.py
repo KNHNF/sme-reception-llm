@@ -38,6 +38,37 @@ def _join_spelled_name(text: str) -> str:
 
     return _re_top.sub(r"\b[A-Za-z](?:-[A-Za-z]){1,}\b", _join, text)
 
+
+_SPELLED_RE = _re_top.compile(r"(?<![A-Za-z])[A-Za-z](?:[\s.\-]+[A-Za-z]){2,}(?![A-Za-z])")
+
+def _extract_spelled_name(text: str):
+    """Return a spelled-out name assembled into a word, or None.
+
+    Callers spell their name to correct a mishearing ('it's Koran, K-A-R-A-N',
+    'no, K A R A N', 'K. A. R. A. N.'), so when a run of at least three single
+    letters is present it is the authoritative name and beats any word the model
+    misheard. Handles hyphen, space and full-stop separators. Returns the longest
+    such run titlecased, or None if there is no spelled run.
+    """
+    best = None
+    for m in _SPELLED_RE.finditer(text):
+        run = m.group()
+        letters = _re_top.findall(r"[A-Za-z]", run)
+        if len(letters) < 3:
+            continue
+        if "-" in run:
+            # Hyphens separate letters, spaces separate words:
+            # 'J-A-C-K R-E-A-C-H-E-R' -> 'Jack Reacher'
+            words = ["".join(_re_top.findall(r"[A-Za-z]", g)).title()
+                     for g in run.split() if _re_top.search(r"[A-Za-z]", g)]
+            cand = " ".join(words)
+        else:
+            # Pure space or full-stop spelling: one word. 'K A R A N' -> 'Karan'
+            cand = "".join(letters).title()
+        if best is None or len(cand) > len(best):
+            best = cand
+    return best
+
 # Support both: `python src/inference.py` (script) and `from src.inference import Pipeline` (module)
 try:
     from src.entity_extractor import extract, to_prompt_context
@@ -103,7 +134,7 @@ def build_prompt(utterance: str, entities: dict, partial_context: Optional[dict]
             + user_content
         )
 
-    if model_family == "llama3":
+    if model_family in ("llama3", "llama1b"):
         return (
             "<|begin_of_text|>"
             "<|start_header_id|>system<|end_header_id|>\n\n"
@@ -111,6 +142,13 @@ def build_prompt(utterance: str, entities: dict, partial_context: Optional[dict]
             "<|start_header_id|>user<|end_header_id|>\n\n"
             f"{user_content}<|eot_id|>"
             "<|start_header_id|>assistant<|end_header_id|>\n\n"
+        )
+
+    if model_family in ("qwen0.5b", "qwen1.5b", "smol360"):
+        return (
+            f"<|im_start|>system\n{SYSTEM_PROMPT}<|im_end|>\n"
+            f"<|im_start|>user\n{user_content}<|im_end|>\n"
+            f"<|im_start|>assistant\n"
         )
 
     # Default: Phi-3 format
@@ -381,7 +419,10 @@ class Pipeline:
                 r"(?:it'?s|i'?m|this is|my name is|name'?s|call me)\s+([A-Za-z][A-Za-z\s\-']+)",
                 raw, _re.IGNORECASE
             )
-            if match:
+            spelled = _extract_spelled_name(raw)
+            if spelled:
+                name = spelled
+            elif match:
                 name = _join_spelled_name(match.group(1).strip()).title()
             elif entities.get("person"):
                 name = _join_spelled_name(entities["person"])
@@ -475,7 +516,10 @@ class Pipeline:
                     r"([A-Za-z][A-Za-z\s\-']+)",
                     utterance, _re2.IGNORECASE
                 )
-                if match2:
+                spelled2 = _extract_spelled_name(utterance)
+                if spelled2:
+                    session.caller_name = spelled2
+                elif match2:
                     session.caller_name = _join_spelled_name(match2.group(1).strip()).title()
                 session.touch()
                 spoken = (
@@ -499,9 +543,14 @@ class Pipeline:
         if session.pending_suggestion:
             u = utterance.lower()
             yes_words = {"yes", "yeah", "yep", "sure", "ok", "okay", "please",
-                         "that works", "that's fine", "sounds good", "perfect", "great"}
+                         "that works", "that's fine", "sounds good", "sounds great",
+                         "perfect", "great", "go on", "go ahead", "that'll do",
+                         "that will do", "lovely", "brilliant", "works for me",
+                         "do that", "book it", "book that", "let's do it",
+                         "yes please", "sounds perfect"}
             no_words  = {"no", "nope", "nah", "different", "another", "else",
-                         "not that", "other", "later", "earlier", "next"}
+                         "not that", "other", "later", "earlier", "next",
+                         "not now", "leave it", "forget it", "some other time"}
             # Words that mean "a different day entirely" (not just a later time slot)
             diff_day_words = {"date", "day", "week", "monday", "tuesday", "wednesday",
                               "thursday", "friday"}
@@ -618,7 +667,31 @@ class Pipeline:
                     )
                     return self._quick(utterance, spoken, False, session, t0)
 
-        # 3. Normal LLM inference
+        # 3. End-call detection (model-independent). A caller saying goodbye should end the
+        # call, not be sent to the model and misread as out_of_scope. Kept to clear terminal
+        # phrases so it never hijacks a normal turn; declines to a proposed slot are handled
+        # above via pending_suggestion, so "no" alone does not reach here mid-negotiation.
+        _u = utterance.lower().strip().rstrip(".!?")
+        _bye_exact = {"bye", "no thanks", "no thank you", "no that's all", "no thats all",
+                      "that's it", "thats it"}
+        _bye_phrases = ("goodbye", "good bye", "that's all", "thats all", "that is all",
+                        "that will be all", "that'll be all", "nothing else", "nothing more",
+                        "all done", "we're done", "were done", "i'm done", "im done",
+                        "no that's all", "no thanks that")
+        if _u in _bye_exact or any(ph in _u for ph in _bye_phrases):
+            sm.close(session_id)
+            return {
+                "raw_output":  "",
+                "action":      {"action": "end_call"},
+                "validated":   True,
+                "spoken":      "Thank you for calling. Have a good day. Goodbye.",
+                "latency_ms":  round((time.perf_counter() - t0) * 1000, 2),
+                "entities":    {},
+                "end_call":    True,
+                "caller_name": session.caller_name,
+            }
+
+        # 4. Normal LLM inference
         entities = extract(utterance)
         prompt   = build_prompt(utterance, entities, partial_context, self.model_family)
 
@@ -729,6 +802,18 @@ class Pipeline:
                     else:
                         spoken = ("Of course. Which day and time would you like, and is it a "
                                   "general appointment, a consultation, or a follow-up?")
+            elif validated.action.value == "cancel_appointment":
+                # An automated line cannot verify the caller's identity or that a booking is
+                # theirs, so we never auto-cancel. Log the request for the reception team and
+                # tell the caller honestly that a human will confirm it.
+                _save_message(session_id, session.caller_name,
+                              f"[cancellation request] {utterance}")
+                name_part = f", {session.caller_name}" if session.caller_name else ""
+                spoken = (
+                    f"Thank you{name_part}. I've noted your cancellation request and passed it to "
+                    f"our reception team, who will confirm it and be in touch. "
+                    f"Is there anything else I can help you with?"
+                )
             else:
                 spoken = render_confirmation(validated)
         else:
@@ -824,7 +909,12 @@ class Pipeline:
         import json as _json
         import urllib.request
 
-        stop = ["<|eot_id|>"] if self.model_family == "llama3" else ["<|end|>"]
+        if self.model_family in ("llama3", "llama1b"):
+            stop = ["<|eot_id|>"]
+        elif self.model_family in ("qwen0.5b", "qwen1.5b", "smol360"):
+            stop = ["<|im_end|>"]
+        else:
+            stop = ["<|end|>"]
         payload = _json.dumps({
             "prompt":      prompt,
             "n_predict":   40,

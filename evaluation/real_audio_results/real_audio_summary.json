@@ -1,18 +1,92 @@
-{
-  "harness": "real_audio",
-  "timestamp": "2026-07-04T20:33:52.482997",
-  "mode": "cpu",
-  "family": "llama3",
-  "whisper": "small",
-  "n_clips": 20,
-  "n_errors": 0,
-  "n_speakers": 2,
-  "action_accuracy_strict": 35.0,
-  "action_accuracy_scope_aware": 65.0,
-  "json_valid": 100.0,
-  "mean_wer": 15.4,
-  "accuracy_by_difficulty": {
-    "clean": 21.4,
-    "messy": 66.7
+[
+  {
+    "harness": "real_audio",
+    "timestamp": "2026-07-05T21:28:37.073794",
+    "mode": "cpu",
+    "family": "llama1b",
+    "whisper": "small",
+    "n_clips": 20,
+    "n_errors": 0,
+    "n_speakers": 2,
+    "action_accuracy_strict": 15.0,
+    "action_accuracy_scope_aware": 60.0,
+    "json_valid": 95.0,
+    "mean_wer": 15.4,
+    "accuracy_by_difficulty": {
+      "clean": 14.3,
+      "messy": 16.7
+    }
+  },
+  {
+    "harness": "real_audio",
+    "timestamp": "2026-07-05T21:34:50.156702",
+    "mode": "cpu",
+    "family": "llama3",
+    "whisper": "small",
+    "n_clips": 20,
+    "n_errors": 0,
+    "n_speakers": 2,
+    "action_accuracy_strict": 25.0,
+    "action_accuracy_scope_aware": 70.0,
+    "json_valid": 100.0,
+    "mean_wer": 15.4,
+    "accuracy_by_difficulty": {
+      "clean": 28.6,
+      "messy": 16.7
+    }
+  },
+  {
+    "harness": "real_audio",
+    "timestamp": "2026-07-05T21:51:10.307640",
+    "mode": "cpu",
+    "family": "qwen0.5b",
+    "whisper": "small",
+    "n_clips": 20,
+    "n_errors": 0,
+    "n_speakers": 2,
+    "action_accuracy_strict": 30.0,
+    "action_accuracy_scope_aware": 75.0,
+    "json_valid": 100.0,
+    "mean_wer": 15.4,
+    "accuracy_by_difficulty": {
+      "clean": 28.6,
+      "messy": 33.3
+    }
+  },
+  {
+    "harness": "real_audio",
+    "timestamp": "2026-07-06T13:33:23.099803",
+    "mode": "cpu",
+    "family": "qwen1.5b",
+    "whisper": "small",
+    "n_clips": 20,
+    "n_errors": 0,
+    "n_speakers": 2,
+    "action_accuracy_strict": 15.0,
+    "action_accuracy_scope_aware": 60.0,
+    "json_valid": 100.0,
+    "mean_wer": 15.4,
+    "accuracy_by_difficulty": {
+      "clean": 14.3,
+      "messy": 16.7
+    }
+  },
+  {
+    "harness": "real_audio",
+    "timestamp": "2026-07-06T13:35:23.360423",
+    "mode": "cpu",
+    "family": "smol360",
+    "whisper": "small",
+    "n_clips": 20,
+    "n_errors": 0,
+    "n_speakers": 2,
+    "action_accuracy_strict": 20.0,
+    "action_accuracy_scope_aware": 50.0,
+    "json_valid": 95.0,
+    "mean_wer": 15.4,
+    "accuracy_by_difficulty": {
+      "clean": 21.4,
+      "messy": 16.7
+    }
   }
-}
+]

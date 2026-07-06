@@ -67,3 +67,12 @@ data/metrics.db
 
 # Caller voicemail messages (personal data, local only)
 data/messages.jsonl
+
+# Call records: transcripts + outcomes (personal data, local only)
+data/call_log.db
+
+# Local eval backups / broken runs (keep local, do not commit)
+evaluation/cpu_results/aligned_summary_v1.json
+evaluation/cpu_results/aligned_llama3_Q4_K_M_v2broken.json
+evaluation/real_audio_results/real_audio_summary_v1.json
+data/synthetic/sme_test_longprompt.jsonl

@@ -128,10 +128,9 @@ def transcribe_uploaded_audio(audio_bytes: bytes) -> str | None:
         f.write(audio_bytes)
         path = f.name
     try:
-        segments, _ = model.transcribe(
-            path, language="en", vad_filter=True,
-            initial_prompt=STT_DOMAIN_PROMPT,
-        )
+        # Plain transcription: measured lowest WER on the real clips. VAD and a
+        # domain initial_prompt both raised WER on this audio, so neither is used.
+        segments, _ = model.transcribe(path, language="en")
         return " ".join(s.text for s in segments).strip()
     except Exception:
         return None

@@ -40,7 +40,7 @@ ACTION_TYPES = ["check_availability", "book_appointment",
 
 def format_prompt(record: dict, model_family: str) -> tuple[str, str]:
     """Return (prompt, stop_token). Identical to evaluate_model.py format_prompt."""
-    if model_family == "llama3":
+    if model_family in ("llama3", "llama1b"):
         prompt = (
             "<|begin_of_text|>"
             "<|start_header_id|>system<|end_header_id|>\n\n"
@@ -50,6 +50,13 @@ def format_prompt(record: dict, model_family: str) -> tuple[str, str]:
             "<|start_header_id|>assistant<|end_header_id|>\n\n"
         )
         return prompt, "<|eot_id|>"
+    if model_family in ("qwen0.5b", "qwen1.5b", "smol360"):
+        prompt = (
+            f"<|im_start|>system\n{record['instruction']}<|im_end|>\n"
+            f"<|im_start|>user\n{record['input']}<|im_end|>\n"
+            f"<|im_start|>assistant\n"
+        )
+        return prompt, "<|im_end|>"
     prompt = (
         f"<|system|>\n{record['instruction']}<|end|>\n"
         f"<|user|>\n{record['input']}<|end|>\n"
@@ -114,7 +121,7 @@ def check_server(port: int) -> bool:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", choices=["phi3", "llama3"], required=True)
+    ap.add_argument("--model", choices=["phi3", "llama3", "llama1b", "qwen0.5b", "qwen1.5b", "smol360"], required=True)
     ap.add_argument("--quant", required=True, help="Quant of the running server, for labels (e.g. Q4_K_M, F16)")
     ap.add_argument("--port", type=int, default=8080)
     args = ap.parse_args()

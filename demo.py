@@ -4,8 +4,13 @@ mic -> Faster-Whisper STT -> pipeline -> Piper TTS
 
 This is the script to run for the viva demo and screen recording.
 
+Voice mode auto-stops when you go quiet, so it feels like a real call: press
+Enter to start talking, and recording ends after a short pause of silence.
+
 Usage:
-    python demo.py                        voice input, mock pipeline, TTS output
+    python demo.py                        voice input (auto-stop), mock pipeline, TTS output
+    python demo.py --seconds 5            fixed 5s record window instead of auto-stop
+    python demo.py --silence 1.5          end a turn after 1.5s of quiet (default 1.2)
     python demo.py --text                 type instead of speaking (no mic needed)
     python demo.py --no-tts               voice input but text-only output
     python demo.py --text --no-tts        fully text-based, no audio hardware needed
@@ -72,13 +77,17 @@ def run_turn(pipeline: Pipeline, tts, utterance: str,
     return result.get("end_call", False)
 
 def voice_loop(pipeline: Pipeline, tts, whisper_model: str, recorder=None,
-               mode_label: str = "MOCK") -> None:
+               mode_label: str = "MOCK", silence: float = 1.2,
+               max_seconds: float = 15.0, fixed_seconds: float = 0.0) -> None:
     from src.stt import STT
     stt = STT(model_size=whisper_model)
     session_id = "demo-voice"
 
     print(banner(mode_label))
-    print("  Speak after the prompt. Say 'quit' to exit.\n")
+    if fixed_seconds > 0:
+        print(f"  Press Enter, then speak for up to {fixed_seconds:.0f}s. Say 'quit' to exit.\n")
+    else:
+        print("  Press Enter to speak. Recording stops when you go quiet. Say 'quit' to exit.\n")
 
     while True:
         try:
@@ -86,16 +95,25 @@ def voice_loop(pipeline: Pipeline, tts, whisper_model: str, recorder=None,
         except (KeyboardInterrupt, EOFError):
             break
 
-        utterance = stt.listen(duration=5.0, prompt=True)
-        if not utterance:
-            print("  [nothing heard, try again]")
-            continue
-        if "quit" in utterance.lower():
-            break
+        try:
+            if fixed_seconds > 0:
+                utterance = stt.listen(duration=fixed_seconds, prompt=True)
+            else:
+                utterance = stt.listen_vad(silence_duration=silence, max_duration=max_seconds)
+            if not utterance:
+                print("  [nothing heard, try again]")
+                continue
+            if "quit" in utterance.lower():
+                break
 
-        if run_turn(pipeline, tts, utterance, session_id, recorder):
-            print("\n  [Call ended by caller]")
+            if run_turn(pipeline, tts, utterance, session_id, recorder):
+                print("\n  [Call ended by caller]")
+                break
+        except (KeyboardInterrupt, EOFError):
             break
+        except Exception as e:
+            print(f"  [turn error, continuing: {type(e).__name__}: {e}]")
+            continue
 
     print("\n[Demo ended]")
 
@@ -165,10 +183,17 @@ if __name__ == "__main__":
     p.add_argument("--llm",     default="mock", choices=["mock", "cpu", "ollama"],
                    help="LLM backend: mock (rule-based), cpu (real fine-tuned model via "
                         "llama.cpp server), or ollama")
-    p.add_argument("--family",  default="phi3", choices=["phi3", "llama3"],
+    p.add_argument("--family",  default="qwen0.5b",
+                   choices=["phi3", "llama3", "llama1b", "qwen0.5b", "qwen1.5b", "smol360"],
                    help="model family when --llm cpu (must match the running server)")
     p.add_argument("--llm-port", type=int, default=8080,
                    help="llama.cpp server port for --llm cpu")
+    p.add_argument("--silence", type=float, default=1.2,
+                   help="seconds of quiet that end a turn (auto-stop voice mode)")
+    p.add_argument("--max-seconds", type=float, default=15.0,
+                   help="hard cap on a single spoken turn")
+    p.add_argument("--seconds", type=float, default=0.0,
+                   help="use a fixed record window of this many seconds instead of auto-stop")
     args = p.parse_args()
 
     if args.llm == "cpu":
@@ -189,4 +214,5 @@ if __name__ == "__main__":
         text_loop(pipeline, tts, recorder=recorder, mode_label=mode_label)
     else:
         voice_loop(pipeline, tts, whisper_model=args.model, recorder=recorder,
-                   mode_label=mode_label)
+                   mode_label=mode_label, silence=args.silence,
+                   max_seconds=args.max_seconds, fixed_seconds=args.seconds)

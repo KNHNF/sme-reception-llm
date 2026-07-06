@@ -98,10 +98,9 @@ STT_DOMAIN_PROMPT = (
 
 
 def transcribe(model, path: Path) -> str:
-    segments, _ = model.transcribe(
-        str(path), language="en", vad_filter=True,
-        initial_prompt=STT_DOMAIN_PROMPT,
-    )
+    # Plain transcription: measured lowest WER on the real clips (15.4%). Both VAD
+    # and a domain initial_prompt raised WER on this audio, so neither is used.
+    segments, _ = model.transcribe(str(path), language="en")
     return " ".join(s.text for s in segments).strip()
 
 
@@ -121,7 +120,12 @@ def predict_action(text: str, mode: str, family: str, cpu_url: str) -> tuple[dic
         return parse_llm_output(raw), raw
 
     import urllib.request
-    stop = ["<|eot_id|>"] if family == "llama3" else ["<|end|>"]
+    if family in ("llama3", "llama1b"):
+        stop = ["<|eot_id|>"]
+    elif family in ("qwen0.5b", "qwen1.5b", "smol360"):
+        stop = ["<|im_end|>"]
+    else:
+        stop = ["<|end|>"]
     payload = json.dumps({"prompt": prompt, "n_predict": 40,
                           "temperature": 0, "stop": stop, "stream": False}).encode()
     req = urllib.request.Request(f"{cpu_url}/completion", data=payload,
@@ -143,7 +147,7 @@ def check_cpu(cpu_url: str) -> bool:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["cpu", "mock"], default="cpu")
-    ap.add_argument("--family", choices=["llama3", "phi3"], default="llama3")
+    ap.add_argument("--family", choices=["llama3", "phi3", "llama1b", "qwen0.5b", "qwen1.5b", "smol360"], default="llama3")
     ap.add_argument("--whisper", default="tiny", help="Faster-Whisper size (tiny matches deployment)")
     ap.add_argument("--cpu-url", default="http://127.0.0.1:8080")
     args = ap.parse_args()
@@ -231,12 +235,24 @@ def main():
     print(f"  Mean WER         : {summary['mean_wer']}%")
     print(f"  By difficulty    : {diff_acc}")
 
-    DETAIL_OUT.write_text(json.dumps(results, indent=2), encoding="utf-8")
+    # Per-model detail so runs do not clobber each other (gitignored).
+    detail_out = AUDIO_DIR / f"real_audio_detail_{args.family}.json"
+    detail_out.write_text(json.dumps(results, indent=2), encoding="utf-8")
+
+    # Accumulate one summary row per (family, whisper), like aligned_summary.json.
     SUMMARY_DIR.mkdir(parents=True, exist_ok=True)
-    (SUMMARY_DIR / "real_audio_summary.json").write_text(
-        json.dumps(summary, indent=2), encoding="utf-8")
-    print(f"\nDetail (gitignored): {DETAIL_OUT.relative_to(ROOT)}")
-    print(f"Summary (committable): {(SUMMARY_DIR / 'real_audio_summary.json').relative_to(ROOT)}")
+    summary_path = SUMMARY_DIR / "real_audio_summary.json"
+    rows = []
+    if summary_path.exists():
+        existing = json.loads(summary_path.read_text(encoding="utf-8"))
+        rows = existing if isinstance(existing, list) else [existing]
+    rows = [r for r in rows
+            if not (r.get("family") == args.family and r.get("whisper") == args.whisper)]
+    rows.append(summary)
+    summary_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+
+    print(f"\nDetail (gitignored): {detail_out.relative_to(ROOT)}")
+    print(f"Summary (committable): {summary_path.relative_to(ROOT)} ({len(rows)} models)")
 
 
 if __name__ == "__main__":

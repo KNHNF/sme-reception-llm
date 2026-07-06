@@ -31,6 +31,26 @@ CONFIGS = {
         "adapter_path": ROOT / "checkpoints" / "sme-llama3-qlora",
         "output_path": ROOT / "checkpoints" / "merged" / "llama3",
     },
+    "llama1b": {
+        "base_model": "meta-llama/Llama-3.2-1B-Instruct",
+        "adapter_path": ROOT / "checkpoints" / "sme-llama1b-qlora",
+        "output_path": ROOT / "checkpoints" / "merged" / "llama1b",
+    },
+    "qwen0.5b": {
+        "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+        "adapter_path": ROOT / "checkpoints" / "sme-qwen0.5b-qlora",
+        "output_path": ROOT / "checkpoints" / "merged" / "qwen0.5b",
+    },
+    "qwen1.5b": {
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "adapter_path": ROOT / "checkpoints" / "sme-qwen1.5b-qlora-v2",
+        "output_path": ROOT / "checkpoints" / "merged" / "qwen1.5b",
+    },
+    "smol360": {
+        "base_model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+        "adapter_path": ROOT / "checkpoints" / "sme-smol360-qlora-v2",
+        "output_path": ROOT / "checkpoints" / "merged" / "smol360",
+    },
 }
 
 
@@ -44,7 +64,7 @@ def merge(model_key: str):
     print("\nLoading base model in float16 (saves RAM)...")
     model = AutoModelForCausalLM.from_pretrained(
         cfg["base_model"],
-        dtype=torch.float16,
+        torch_dtype=torch.float16,
         device_map="cpu",
     )
 
@@ -67,6 +87,6 @@ def merge(model_key: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=["phi3", "llama3"], required=True)
+    parser.add_argument("--model", choices=["phi3", "llama3", "llama1b", "qwen0.5b", "qwen1.5b", "smol360"], required=True)
     args = parser.parse_args()
     merge(args.model)

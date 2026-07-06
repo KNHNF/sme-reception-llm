@@ -52,7 +52,7 @@ def find_server_binary():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model",   choices=["phi3", "llama3"], required=True)
+    parser.add_argument("--model",   choices=["phi3", "llama3", "llama1b", "qwen0.5b", "qwen1.5b", "smol360"], required=True)
     parser.add_argument("--quant",   default=None,
                         help="Force specific quant e.g. Q4_K_M. Auto-selects best if omitted.")
     parser.add_argument("--port",    type=int, default=8080)
@@ -62,6 +62,9 @@ def main():
                         help="Context length (2048 is enough for our prompts)")
     parser.add_argument("--max-tokens", type=int, default=80,
                         help="Max tokens per response (~20 for JSON action output)")
+    parser.add_argument("--gpu-layers", type=int, default=0,
+                        help="Layers to offload to GPU (-ngl). 0 = CPU only. "
+                             "Needs a CUDA/Metal build of llama-server. Same GGUF, still offline.")
     args = parser.parse_args()
 
     gguf_path = find_gguf(args.model, args.quant)
@@ -88,6 +91,8 @@ def main():
         "-t", str(args.threads),
         "--log-disable",  # cleaner output
     ]
+    if args.gpu_layers > 0:
+        cmd += ["-ngl", str(args.gpu_layers)]  # offload to GPU, still offline
 
     print(f"Starting llama.cpp server")
     print(f"  Model  : {gguf_path.name}")
