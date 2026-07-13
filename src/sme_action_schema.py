@@ -123,7 +123,8 @@ CONFIRMATION_TEMPLATES = {
     ),
     ActionType.book_appointment: (
         "I have booked your {service_label} for {date_str} at {time_str}. "
-        "You will receive a confirmation shortly."
+        "In a full deployment this would trigger an email or SMS confirmation, "
+        "though that's outside scope for this prototype."
     ),
     ActionType.cancel_appointment: (
         "Your appointment has been cancelled. "
@@ -173,14 +174,26 @@ def render_confirmation(action_obj: BaseModel) -> str:
         )
 
     elif a == ActionType.book_appointment:
+        # src-prefixed first to match how the rest of the app imports (see
+        # inference.py) - falls back to a bare import so this file's own
+        # __main__ smoke test still works when run directly as a script.
+        try:
+            from src.calendar_store import _ordinal
+        except ImportError:
+            from calendar_store import _ordinal
         d = datetime.strptime(action_obj.date, "%Y-%m-%d")
         t = datetime.strptime(action_obj.time, "%H:%M")
         label, duration = SERVICE_LABELS[action_obj.service]
+        # "Monday the 13th of July", matching describe_slot() elsewhere -
+        # this used %d ("13 July", no ordinal at all), a different and
+        # flatter-sounding format than every other date in the app.
+        day_str = f"{d.strftime('%A')} the {_ordinal(d.day)} of {d.strftime('%B')}"
         return (
-            f"I have booked {label} for {d.strftime('%A, %d %B')} "
+            f"I have booked {label} for {day_str} "
             f"at {t.strftime('%I:%M %p').lstrip('0')}. "
             f"The appointment is {duration}. "
-            f"You will receive a confirmation shortly."
+            f"In a full deployment this would trigger an email or SMS "
+            f"confirmation, though that's outside scope for this prototype."
         )
 
     elif a == ActionType.cancel_appointment:
@@ -190,16 +203,23 @@ def render_confirmation(action_obj: BaseModel) -> str:
         )
 
     elif a == ActionType.clarify:
+        # Spoken-style examples ("ten in the morning") instead of digit
+        # shorthand ("10am", "2:30pm") - a caller saying the shorthand back
+        # verbatim ("two thirty pee em") transcribes inconsistently on a
+        # small Whisper model, so the prompt now models the phrasing we
+        # actually want to hear rather than a written abbreviation.
         field_hints = {
-            "time":    "what time you would like - for example, '10am' or '2:30pm'",
-            "date":    "which date you would like - for example, 'this Monday' or 'June 30th'",
-            "service": "what type of appointment - general, consultation, or follow-up",
+            "time":    "what time you would like, for example ten in the morning or "
+                       "half past two in the afternoon",
+            "date":    "which date you would like, for example this Monday or the "
+                       "thirtieth of June",
+            "service": "what type of appointment: general, consultation, or follow-up",
         }
         prompts = []
         for f in action_obj.missing_fields:
             prompts.append(field_hints.get(f, f))
         joined = " and ".join(prompts)
-        return f"Of course - could you also let me know {joined}?"
+        return f"Of course, could you also let me know {joined}?"
 
     elif a == ActionType.out_of_scope:
         return (

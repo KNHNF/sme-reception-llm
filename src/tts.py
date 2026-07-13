@@ -96,6 +96,58 @@ class TTS:
             "    3. Corrupt model -- re-download .onnx and .onnx.json"
         )
 
+    def speak_interruptible(self, text: str, stop_event) -> bool:
+        """Like speak(), but playback can be cut short mid-sentence.
+
+        Returns True if playback was interrupted (barge-in), False if it
+        played to completion. `stop_event` is a threading.Event that some
+        other thread (a mic-monitoring loop, see STT.detect_speech_onset)
+        sets the instant it hears the caller start talking.
+
+        This uses sounddevice instead of winsound.PlaySound. winsound
+        blocks with no interrupt hook, so once playback started there was
+        no way to stop it early - barge-in needs playback that can be
+        cancelled from another thread.
+        """
+        print(f"[TTS] Speaking (interruptible): {text!r}")
+        if not self.available:
+            print(f"[TTS] (audio disabled) -> {text}")
+            return False
+
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            wav_path = tmp.name
+
+        try:
+            self._run_piper(text, wav_path)
+            return self._play_interruptible(wav_path, stop_event)
+        finally:
+            try:
+                os.unlink(wav_path)
+            except OSError:
+                pass
+
+    def _play_interruptible(self, wav_path: str, stop_event) -> bool:
+        """Play a WAV via sounddevice, polling stop_event every ~30ms.
+        Returns True if stopped early, False if it finished naturally.
+
+        Requires: pip install sounddevice soundfile
+        """
+        import sounddevice as sd
+        import soundfile as sf
+
+        data, samplerate = sf.read(wav_path, dtype="float32")
+        sd.play(data, samplerate)
+        try:
+            while sd.get_stream() is not None and sd.get_stream().active:
+                if stop_event is not None and stop_event.is_set():
+                    sd.stop()
+                    return True
+                sd.sleep(30)
+        except Exception:
+            sd.stop()
+            raise
+        return False
+
     def to_wav_bytes(self, text: str) -> bytes | None:
         """Generate WAV bytes from text without playing. Used by Streamlit UI."""
         if not self.available:
@@ -115,12 +167,19 @@ class TTS:
                 pass
 
     def _play(self, wav_path: str) -> None:
-        import sys
-        if sys.platform == "win32":
-            import winsound
-            winsound.PlaySound(wav_path, winsound.SND_FILENAME)
-        else:
-            os.system("aplay " + wav_path + " 2>/dev/null || afplay " + wav_path + " 2>/dev/null")
+        """Blocking playback via sounddevice - same backend as
+        speak_interruptible()'s playback, the STT beep, and mic capture
+        everywhere else in this app. Previously used winsound.PlaySound on
+        Windows, which is a separate audio API from the sounddevice-based
+        mic recording that follows immediately after - mixing the two was
+        the likely cause of intermittent lost beeps / clipped first words
+        (see stt.py's _beep). Using one backend throughout removes that.
+        """
+        import sounddevice as sd
+        import soundfile as sf
+        data, samplerate = sf.read(wav_path, dtype="float32")
+        sd.play(data, samplerate)
+        sd.wait()
 
 if __name__ == "__main__":
     # Standalone diagnostic -- mirrors demo.py but TTS only.

@@ -16,12 +16,17 @@ Usage:
     python demo.py --text --no-tts        fully text-based, no audio hardware needed
     python demo.py --model tiny           use Whisper tiny (faster, default)
     python demo.py --model small          use Whisper small (more accurate)
-    python demo.py --llm cpu              real fine-tuned model via llama.cpp CPU server
-    python demo.py --llm cpu --family llama3   use the Llama 3.2 GGUF server
+    python demo.py --llm cpu              real model -- prompts you to choose which one,
+                                            then starts its llama.cpp server automatically
+                                            (no separate terminal needed)
+    python demo.py --llm cpu --family llama3   skip the prompt, use Llama 3.2 directly
     python demo.py --text --llm cpu       type input, real model, no mic needed
+    python demo.py --llm cpu --bargein    voice mode, caller can interrupt mid-reply
+                                            (headset recommended, see src/bargein.py)
 
-For --llm cpu, start the server first in another terminal:
-    python scripts/03_cpu_server.py --model phi3
+For --llm cpu, the server now starts automatically (see src/model_server.py).
+Only start scripts/03_cpu_server.py yourself if you want a specific quant, or
+want the server to keep running across multiple demo.py runs.
 
 Requirements:
     pip install faster-whisper sounddevice soundfile
@@ -30,6 +35,7 @@ Requirements:
 
 import argparse
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -37,6 +43,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from src.inference import Pipeline
 from src.tts import TTS
+from src.bargein import speak_with_bargein
 
 def banner(mode_label: str) -> str:
     return f"""
@@ -58,9 +65,34 @@ TEST_UTTERANCES = [
     "What are your opening hours?",
 ]
 
-def run_turn(pipeline: Pipeline, tts, utterance: str,
-             session_id: str, recorder=None) -> bool:
-    """Run one pipeline turn. Returns True if the call should end."""
+def _speak_result(tts, result: dict, recorder=None, stt=None,
+                  bargein_threshold: float = None):
+    """Speak a pipeline result (greeting or turn reply), handling barge-in
+    if enabled. Returns the caller's utterance if they interrupted
+    mid-reply, else None. Shared by run_turn and the call-opening greeting.
+    """
+    bargein_utterance = None
+    if bargein_threshold is not None and stt is not None:
+        interrupted, caught = speak_with_bargein(tts, stt, result["spoken"], bargein_threshold)
+        if interrupted:
+            print("  [caller interrupted]")
+            if caught:
+                bargein_utterance = caught
+    else:
+        audio = tts.speak(result["spoken"])
+        if recorder and audio is not None:
+            recorder.save(audio, result["spoken"])
+    return bargein_utterance
+
+def run_turn(pipeline: Pipeline, tts, utterance: str, session_id: str,
+             recorder=None, stt=None, bargein_threshold: float = None):
+    """Run one pipeline turn.
+
+    Returns (end_call, bargein_utterance). bargein_utterance is not None
+    when the caller talked over the reply and the barge-in listener
+    already captured what they said - the caller loop should feed that
+    straight back in as the next turn instead of prompting again.
+    """
     print(f"\n  Input:   {utterance!r}")
 
     result = pipeline.run(utterance, session_id=session_id)
@@ -70,18 +102,31 @@ def run_turn(pipeline: Pipeline, tts, utterance: str,
     print(f"  Spoken:  {result['spoken']}")
     print(f"  Latency: {result['latency_ms']}ms")
 
-    audio = tts.speak(result["spoken"])
-    if recorder and audio is not None:
-        recorder.save(audio, result["spoken"])
-
-    return result.get("end_call", False)
+    bargein_utterance = _speak_result(tts, result, recorder, stt, bargein_threshold)
+    return result.get("end_call", False), bargein_utterance
 
 def voice_loop(pipeline: Pipeline, tts, whisper_model: str, recorder=None,
                mode_label: str = "MOCK", silence: float = 1.2,
-               max_seconds: float = 15.0, fixed_seconds: float = 0.0) -> None:
+               max_seconds: float = 15.0, fixed_seconds: float = 0.0,
+               bargein: bool = False) -> None:
     from src.stt import STT
-    stt = STT(model_size=whisper_model)
     session_id = "demo-voice"
+
+    # Load Whisper on a background thread instead of blocking here - it can
+    # take several seconds, and doing it before anything is said means the
+    # operator sees nothing happen for that whole stretch. Loads in
+    # parallel with the greeting being spoken below.
+    stt_holder = {}
+
+    def _load_stt():
+        stt_holder["stt"] = STT(model_size=whisper_model)
+
+    stt_thread = threading.Thread(target=_load_stt, daemon=True)
+    stt_thread.start()
+
+    if bargein and not getattr(tts, "available", False):
+        print("  [bargein] TTS unavailable (--no-tts or Piper missing) -- barge-in disabled\n")
+        bargein = False
 
     print(banner(mode_label))
     if fixed_seconds > 0:
@@ -89,28 +134,60 @@ def voice_loop(pipeline: Pipeline, tts, whisper_model: str, recorder=None,
     else:
         print("  Press Enter to speak. Recording stops when you go quiet. Say 'quit' to exit.\n")
 
-    while True:
-        try:
-            input("  [Press Enter to speak]")
-        except (KeyboardInterrupt, EOFError):
-            break
+    bargein_threshold = None
+    if bargein:
+        # Barge-in needs stt loaded and calibrated before playback starts,
+        # so this path can't avoid waiting for the background load.
+        stt_thread.join()
+        stt = stt_holder["stt"]
+        print("  [bargein] calibrating room noise, stay quiet a moment...")
+        bargein_threshold = stt.calibrate_ambient()
+        print(f"  [bargein] on (threshold={bargein_threshold:.4f}). Reliable only with a "
+              "headset or low speaker volume near the mic -- see src/bargein.py.\n")
 
-        try:
-            if fixed_seconds > 0:
-                utterance = stt.listen(duration=fixed_seconds, prompt=True)
-            else:
-                utterance = stt.listen_vad(silence_duration=silence, max_duration=max_seconds)
+    # Assistant speaks first, like a real receptionist answering - the
+    # caller shouldn't have to say something before hearing anything back.
+    greeting = pipeline.greet(session_id=session_id)
+    print(f"\n  Assistant: {greeting['spoken']}")
+    pending_utterance = _speak_result(tts, greeting, recorder,
+                                      stt_holder.get("stt"), bargein_threshold)
+
+    stt_thread.join()  # make sure Whisper is ready before we try to listen
+    stt = stt_holder["stt"]
+
+    while True:
+        if pending_utterance:
+            utterance = pending_utterance
+            pending_utterance = None
+        else:
+            try:
+                input("  [Press Enter to speak]")
+            except (KeyboardInterrupt, EOFError):
+                break
+
+            try:
+                if fixed_seconds > 0:
+                    utterance = stt.listen(duration=fixed_seconds, prompt=True)
+                else:
+                    utterance = stt.listen_vad(silence_duration=silence, max_duration=max_seconds)
+            except (KeyboardInterrupt, EOFError):
+                break
+            except Exception as e:
+                print(f"  [turn error, continuing: {type(e).__name__}: {e}]")
+                continue
+
             if not utterance:
                 print("  [nothing heard, try again]")
                 continue
             if "quit" in utterance.lower():
                 break
 
-            if run_turn(pipeline, tts, utterance, session_id, recorder):
+        try:
+            ended, pending_utterance = run_turn(pipeline, tts, utterance, session_id, recorder,
+                                                stt=stt, bargein_threshold=bargein_threshold)
+            if ended:
                 print("\n  [Call ended by caller]")
                 break
-        except (KeyboardInterrupt, EOFError):
-            break
         except Exception as e:
             print(f"  [turn error, continuing: {type(e).__name__}: {e}]")
             continue
@@ -127,6 +204,10 @@ def text_loop(pipeline: Pipeline, tts, recorder=None,
     for i, u in enumerate(TEST_UTTERANCES, 1):
         print(f"    {i}. {u}")
     print()
+
+    greeting = pipeline.greet(session_id=session_id)
+    print(f"  Assistant: {greeting['spoken']}")
+    _speak_result(tts, greeting, recorder)
 
     while True:
         try:
@@ -145,7 +226,8 @@ def text_loop(pipeline: Pipeline, tts, recorder=None,
         else:
             utterance = raw
 
-        if run_turn(pipeline, tts, utterance, session_id, recorder):
+        ended, _ = run_turn(pipeline, tts, utterance, session_id, recorder)
+        if ended:
             print("\n  [Call ended by caller]")
             break
 
@@ -183,9 +265,12 @@ if __name__ == "__main__":
     p.add_argument("--llm",     default="mock", choices=["mock", "cpu", "ollama"],
                    help="LLM backend: mock (rule-based), cpu (real fine-tuned model via "
                         "llama.cpp server), or ollama")
-    p.add_argument("--family",  default="qwen0.5b",
+    p.add_argument("--family",  default=None,
                    choices=["phi3", "llama3", "llama1b", "qwen0.5b", "qwen1.5b", "smol360"],
-                   help="model family when --llm cpu (must match the running server)")
+                   help="model family when --llm cpu. If omitted, you'll be prompted to "
+                        "choose from the models that have a GGUF built, and the server "
+                        "will be started automatically -- no more running "
+                        "scripts/03_cpu_server.py by hand in a second terminal.")
     p.add_argument("--llm-port", type=int, default=8080,
                    help="llama.cpp server port for --llm cpu")
     p.add_argument("--silence", type=float, default=1.2,
@@ -194,12 +279,24 @@ if __name__ == "__main__":
                    help="hard cap on a single spoken turn")
     p.add_argument("--seconds", type=float, default=0.0,
                    help="use a fixed record window of this many seconds instead of auto-stop")
+    p.add_argument("--bargein", action="store_true",
+                   help="let the caller interrupt the assistant mid-reply (voice mode only). "
+                        "Energy-based, no echo cancellation -- reliable only with a headset, "
+                        "or low speaker volume near the mic. See src/bargein.py for the caveat.")
     args = p.parse_args()
 
+    server_proc = None
     if args.llm == "cpu":
-        pipeline   = Pipeline(mode="cpu", model_family=args.family,
+        from src.model_server import prompt_for_family, ensure_server
+        family = args.family or prompt_for_family()
+        try:
+            server_proc = ensure_server(family, port=args.llm_port)
+        except RuntimeError as e:
+            print(f"\n[model] {e}")
+            raise SystemExit(1)
+        pipeline   = Pipeline(mode="cpu", model_family=family,
                               cpu_url=f"http://127.0.0.1:{args.llm_port}")
-        mode_label = f"REAL MODEL ({args.family} via llama.cpp CPU server)"
+        mode_label = f"REAL MODEL ({family} via llama.cpp CPU server)"
     elif args.llm == "ollama":
         pipeline   = Pipeline(mode="ollama")
         mode_label = "OLLAMA (local)"
@@ -210,9 +307,17 @@ if __name__ == "__main__":
     tts      = TTS() if not args.no_tts else _SilentTTS()
     recorder = _Recorder() if args.record else None
 
-    if args.text:
-        text_loop(pipeline, tts, recorder=recorder, mode_label=mode_label)
-    else:
-        voice_loop(pipeline, tts, whisper_model=args.model, recorder=recorder,
-                   mode_label=mode_label, silence=args.silence,
-                   max_seconds=args.max_seconds, fixed_seconds=args.seconds)
+    try:
+        if args.text:
+            text_loop(pipeline, tts, recorder=recorder, mode_label=mode_label)
+        else:
+            voice_loop(pipeline, tts, whisper_model=args.model, recorder=recorder,
+                       mode_label=mode_label, silence=args.silence,
+                       max_seconds=args.max_seconds, fixed_seconds=args.seconds,
+                       bargein=args.bargein)
+    finally:
+        # Only stop a server this run started - if ensure_server() reused an
+        # already-running one (returns None), leave it alone.
+        if server_proc is not None:
+            print("[model] stopping the llama.cpp server...")
+            server_proc.terminate()

@@ -17,7 +17,7 @@ _SLOT_TIMES = [
     "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
 ]
 _SERVICES = ["general", "consultation", "follow_up"]
-_WEEKS = 3
+_WEEKS = 4  # matches the month-view calendar in call_ui.py: 4 weeks covers a full month
 
 _SERVICE_ALIASES = {
     "general":      "general",
@@ -30,7 +30,7 @@ _SERVICE_ALIASES = {
 
 
 def _regenerate() -> dict:
-    """Build a fresh 3-week schedule from today and write it to disk."""
+    """Build a fresh _WEEKS-week schedule from today and write it to disk."""
     slots = []
     day = date.today()
     weeks_done = 0
@@ -55,9 +55,22 @@ def _load() -> list[dict]:
     with open(_DATA_PATH) as f:
         data = json.load(f)
     slots = data["slots"]
-    today = str(date.today())
-    if not any(s["date"] >= today for s in slots):
+    today = date.today()
+    today_str = str(today)
+
+    future_dates = [s["date"] for s in slots if s["date"] >= today_str]
+    if not future_dates:
+        # Nothing left in the future at all - definitely stale.
         slots = _regenerate()["slots"]
+    else:
+        # Even with some future dates, the stored file might have been
+        # generated under an older, smaller _WEEKS value (or has just aged
+        # past its horizon), so it may not reach far enough forward for the
+        # calendar month view to show a full month. Regenerate whenever the
+        # furthest stored date falls short of the configured window.
+        horizon = str(today + timedelta(weeks=_WEEKS - 1))
+        if max(future_dates) < horizon:
+            slots = _regenerate()["slots"]
     return slots
 
 
@@ -76,7 +89,9 @@ def _fmt_slot(slot: dict) -> str:
         "follow_up":    "a follow-up",
     }
     label = service_labels.get(slot["service"], slot["service"])
-    day_str = f"{d.strftime('%A')} {_ordinal(d.day)} {d.strftime('%B')}"
+    # "Monday the 13th of July", not "Monday 13th July" - reads more like a
+    # person speaking and less like a written date shorthand.
+    day_str = f"{d.strftime('%A')} the {_ordinal(d.day)} of {d.strftime('%B')}"
     return f"{label} on {day_str} at {t.strftime('%I:%M %p').lstrip('0')}"
 
 

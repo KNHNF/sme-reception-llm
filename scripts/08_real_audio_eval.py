@@ -4,6 +4,8 @@ Step 8: Real-audio evaluation.
 Runs the downloaded real recordings through the deployed path: Faster-Whisper STT
 then the fine-tuned LLM, and scores the predicted action against the human label
 (action_type in labels.csv) and the transcription against the reference transcript.
+Also times each step (STT and LLM separately), reported as P50/P95 in the summary,
+using the same convention as 06_aligned_eval.py so the numbers are comparable.
 
 Why it calls the model directly instead of Pipeline.run(): the live pipeline is
 conversational (turn 0 greets and asks for the caller's name), so a single clip
@@ -31,6 +33,7 @@ import argparse
 import csv
 import json
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -149,6 +152,10 @@ def main():
     ap.add_argument("--mode", choices=["cpu", "mock"], default="cpu")
     ap.add_argument("--family", choices=["llama3", "phi3", "llama1b", "qwen0.5b", "qwen1.5b", "smol360"], default="llama3")
     ap.add_argument("--whisper", default="tiny", help="Faster-Whisper size (tiny matches deployment)")
+    ap.add_argument("--quant", default="Q4_K_M",
+                   help="Label only: which GGUF quant is loaded on the running server. "
+                        "Not enforced, just recorded, so summary rows for different quant "
+                        "levels of the same family+whisper don't overwrite each other.")
     ap.add_argument("--cpu-url", default="http://127.0.0.1:8080")
     args = ap.parse_args()
 
@@ -171,13 +178,17 @@ def main():
             results.append({"filename": row.get("filename"), "error": "audio_missing"})
             continue
         try:
+            stt_start = time.perf_counter()
             hyp = transcribe(model, audio)
+            stt_ms = (time.perf_counter() - stt_start) * 1000
         except Exception as exc:
             print(f"{i:>3}  STT FAILED {audio.name}: {exc}")
             results.append({"filename": row.get("filename"), "error": f"stt:{exc}"})
             continue
 
+        llm_start = time.perf_counter()
         parsed, raw = predict_action(hyp, args.mode, args.family, args.cpu_url)
+        llm_ms = (time.perf_counter() - llm_start) * 1000
         predicted = (parsed or {}).get("action")
         json_valid = parsed is not None
         strict_ok = predicted == expected
@@ -194,9 +205,11 @@ def main():
             "predicted": predicted, "json_valid": json_valid,
             "strict_correct": strict_ok, "scope_correct": scope_ok,
             "wer": round(clip_wer, 3), "reference": ref, "hypothesis": hyp,
+            "stt_latency_ms": round(stt_ms, 1), "llm_latency_ms": round(llm_ms, 1),
         })
         mark = "ok " if strict_ok else "MISS"
-        print(f"{i:>3}  {mark}  exp={expected:<18} got={str(predicted):<18} wer={clip_wer:.2f}")
+        print(f"{i:>3}  {mark}  exp={expected:<18} got={str(predicted):<18} "
+              f"wer={clip_wer:.2f}  stt={stt_ms:.0f}ms  llm={llm_ms:.0f}ms")
 
     scored = [r for r in results if "error" not in r]
     n = len(scored)
@@ -214,9 +227,18 @@ def main():
         by_diff.setdefault(d, []).append(r["strict_correct"])
     diff_acc = {d: round(sum(v) / len(v) * 100, 1) for d, v in by_diff.items()}
 
+    # Same p50/p95 convention as 06_aligned_eval.py, so real-audio latency is
+    # directly comparable to the synthetic aligned-harness numbers already reported.
+    llm_lat_sorted = sorted(r["llm_latency_ms"] for r in scored)
+    llm_p50 = llm_lat_sorted[len(llm_lat_sorted) // 2] if llm_lat_sorted else 0
+    llm_p95 = llm_lat_sorted[int(len(llm_lat_sorted) * 0.95)] if llm_lat_sorted else 0
+    stt_lat_sorted = sorted(r["stt_latency_ms"] for r in scored)
+    stt_p50 = stt_lat_sorted[len(stt_lat_sorted) // 2] if stt_lat_sorted else 0
+    stt_p95 = stt_lat_sorted[int(len(stt_lat_sorted) * 0.95)] if stt_lat_sorted else 0
+
     summary = {
         "harness": "real_audio", "timestamp": datetime.now().isoformat(),
-        "mode": args.mode, "family": args.family, "whisper": args.whisper,
+        "mode": args.mode, "family": args.family, "whisper": args.whisper, "quant": args.quant,
         "n_clips": n, "n_errors": len(results) - n,
         "n_speakers": len({r["speaker_id"] for r in scored}),
         "action_accuracy_strict": round(strict * 100, 1),
@@ -224,6 +246,10 @@ def main():
         "json_valid": round(json_v * 100, 1),
         "mean_wer": round(mean_wer * 100, 1),
         "accuracy_by_difficulty": diff_acc,
+        "latency_p50_ms": round(llm_p50, 0),
+        "latency_p95_ms": round(llm_p95, 0),
+        "stt_latency_p50_ms": round(stt_p50, 0),
+        "stt_latency_p95_ms": round(stt_p95, 0),
     }
 
     print("\n=== Real-audio summary ===")
@@ -233,6 +259,8 @@ def main():
           f"{summary['action_accuracy_scope_aware']}% scope-aware")
     print(f"  JSON valid       : {summary['json_valid']}%")
     print(f"  Mean WER         : {summary['mean_wer']}%")
+    print(f"  LLM latency      : P50 {summary['latency_p50_ms']}ms  P95 {summary['latency_p95_ms']}ms")
+    print(f"  STT latency      : P50 {summary['stt_latency_p50_ms']}ms  P95 {summary['stt_latency_p95_ms']}ms")
     print(f"  By difficulty    : {diff_acc}")
 
     # Per-model detail so runs do not clobber each other (gitignored).
@@ -246,8 +274,11 @@ def main():
     if summary_path.exists():
         existing = json.loads(summary_path.read_text(encoding="utf-8"))
         rows = existing if isinstance(existing, list) else [existing]
+    # Dedup key includes quant now: a different quant level of the same family+whisper
+    # is a distinct result, not a replacement (previously this silently overwrote it).
     rows = [r for r in rows
-            if not (r.get("family") == args.family and r.get("whisper") == args.whisper)]
+            if not (r.get("family") == args.family and r.get("whisper") == args.whisper
+                    and r.get("quant", "Q4_K_M") == args.quant)]
     rows.append(summary)
     summary_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
 

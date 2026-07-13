@@ -4,2166 +4,6 @@
   "booking_notice_hours": 2,
   "slots": [
     {
-      "date": "2026-06-29",
-      "time": "09:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "14:30",
-      "service": "general",
-      "available": false
-    },
-    {
-      "date": "2026-06-29",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "15:00",
-      "service": "general",
-      "available": false
-    },
-    {
-      "date": "2026-06-29",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-29",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "09:00",
-      "service": "general",
-      "available": false
-    },
-    {
-      "date": "2026-06-30",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "14:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "15:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-06-30",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "09:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "14:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "15:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-01",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "09:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "14:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "15:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-02",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "09:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "14:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "15:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-03",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "09:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "14:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "15:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-06",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "09:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "14:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "15:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-07",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "09:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "14:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "15:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-08",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "09:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "14:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "15:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-09",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "09:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "09:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "09:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "09:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "09:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "09:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "10:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "10:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "10:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "10:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "10:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "10:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "11:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "11:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "11:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "11:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "11:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "11:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "14:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "14:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "14:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "14:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "14:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "14:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "15:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "15:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "15:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "15:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "15:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "15:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "16:00",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "16:00",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "16:00",
-      "service": "follow_up",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "16:30",
-      "service": "general",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "16:30",
-      "service": "consultation",
-      "available": true
-    },
-    {
-      "date": "2026-07-10",
-      "time": "16:30",
-      "service": "follow_up",
-      "available": true
-    },
-    {
       "date": "2026-07-13",
       "time": "09:00",
       "service": "general",
@@ -3239,6 +1079,3246 @@
     },
     {
       "date": "2026-07-17",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-20",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-21",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-22",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-23",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-24",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-27",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-28",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-29",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-30",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-07-31",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-03",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-04",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-05",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-06",
+      "time": "16:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "09:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "09:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "09:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "09:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "09:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "09:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "10:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "10:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "10:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "10:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "10:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "10:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "11:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "11:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "11:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "11:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "11:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "11:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "14:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "14:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "14:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "14:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "14:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "14:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "15:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "15:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "15:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "15:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "15:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "15:30",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "16:00",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "16:00",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "16:00",
+      "service": "follow_up",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "16:30",
+      "service": "general",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "16:30",
+      "service": "consultation",
+      "available": true
+    },
+    {
+      "date": "2026-08-07",
       "time": "16:30",
       "service": "follow_up",
       "available": true

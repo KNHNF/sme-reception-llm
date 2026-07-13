@@ -39,18 +39,30 @@ def _join_spelled_name(text: str) -> str:
     return _re_top.sub(r"\b[A-Za-z](?:-[A-Za-z]){1,}\b", _join, text)
 
 
-_SPELLED_RE = _re_top.compile(r"(?<![A-Za-z])[A-Za-z](?:[\s.\-]+[A-Za-z]){2,}(?![A-Za-z])")
+# Lookbehind excludes both letters AND apostrophes. Without the apostrophe,
+# "it's K-A-R-A-N" matched starting at the "s" in "it's" (apostrophe isn't a
+# letter, so the old lookbehind let "s" start a run), swallowing it into the
+# result as a bogus leading "S" - "it's K-A-R-A-N" became "S Karan" instead
+# of "Karan". Same trap for any contraction ("that's", "let's", ...)
+# immediately followed by a spelled name.
+_SPELLED_RE = _re_top.compile(r"(?<![A-Za-z'])[A-Za-z](?:[\s.\-]+[A-Za-z]){2,}(?![A-Za-z])")
 
 def _extract_spelled_name(text: str):
-    """Return a spelled-out name assembled into a word, or None.
+    """Return a spelled-out name assembled into a word (or words), or None.
 
     Callers spell their name to correct a mishearing ('it's Koran, K-A-R-A-N',
     'no, K A R A N', 'K. A. R. A. N.'), so when a run of at least three single
     letters is present it is the authoritative name and beats any word the model
-    misheard. Handles hyphen, space and full-stop separators. Returns the longest
-    such run titlecased, or None if there is no spelled run.
+    misheard. Handles hyphen, space and full-stop separators.
+
+    Callers often spell first AND last name as two separate runs in one
+    utterance ('J-O-H-N, and V-I-C-K'), the comma/'and' between them breaks
+    the regex into two matches rather than one. Every matched run found is
+    concatenated in the order spoken ('John Vick'), not just the longest one -
+    keeping only the longest silently dropped whichever name part was shorter.
+    Returns None if there is no spelled run at all.
     """
-    best = None
+    parts = []
     for m in _SPELLED_RE.finditer(text):
         run = m.group()
         letters = _re_top.findall(r"[A-Za-z]", run)
@@ -65,9 +77,10 @@ def _extract_spelled_name(text: str):
         else:
             # Pure space or full-stop spelling: one word. 'K A R A N' -> 'Karan'
             cand = "".join(letters).title()
-        if best is None or len(cand) > len(best):
-            best = cand
-    return best
+        parts.append(cand)
+    if not parts:
+        return None
+    return " ".join(parts)
 
 # Support both: `python src/inference.py` (script) and `from src.inference import Pipeline` (module)
 try:
@@ -93,6 +106,19 @@ def _save_message(session_id: str, caller_name, text: str) -> None:
     except Exception:
         pass
 
+
+# Shortened from the original ~30-word version (dropped "quality and", "Please
+# note that"). Ends by telling the caller to speak after the beep, since on a
+# real call they can't see the console prompt that used to be the only cue -
+# see STT.listen_vad's `beep` param, which already plays a tone right before
+# listening starts. This is a wording simplification, not legal advice: if
+# the call-recording disclosure needs specific regulatory phrasing, restore
+# the fuller sentence.
+GREETING = (
+    "Thank you for calling City Medical Practice. "
+    "This call may be recorded for training purposes. "
+    "After the beep, please tell me your name."
+)
 
 SYSTEM_PROMPT = (
     "Appointment assistant. Output one JSON object only. "
@@ -171,6 +197,26 @@ def parse_llm_output(text: Optional[str]) -> Optional[dict]:
         return json.loads(text[start:end + 1])
     except json.JSONDecodeError:
         return None
+
+def _safe_service(model_service_value: Optional[str], entities: dict) -> Optional[str]:
+    """Resolve which service to actually search/book for.
+
+    Prefers the caller's own words (spaCy keyword match on the literal
+    utterance) over the model's guess. Never accepts "follow_up" from the
+    model alone with no keyword evidence - a follow-up implies a prior
+    visit, which a brand-new caller cannot have, so an unprompted follow_up
+    guess for a vague "what's free?" is a model quirk, not a real request.
+    Falls back to "general" in that case rather than leaving it unset (unset
+    means "any service", which can surface a follow_up slot anyway just
+    because it happens to be chronologically first).
+    """
+    keyword_service = entities.get("service")
+    if keyword_service:
+        return keyword_service
+    if model_service_value == "follow_up":
+        return "general"
+    return model_service_value
+
 
 def validate_action(raw: Optional[dict]):
     """
@@ -349,11 +395,17 @@ class Pipeline:
             "speak to staff", "member of staff", "speak to the team",
             "transfer me", "talk to someone", "talk to a person",
             "human", "operator", "receptionist please",
+            # "reception" alone catches natural phrasings the exact-match
+            # list above missed ("put me through to reception", "can I speak
+            # to reception") - found via test_pipeline_state_machine.py,
+            # which used exactly this phrase and it fell through to the LLM
+            # instead of transferring.
+            "put me through", "to reception", "speak to reception",
         }
         if any(t in _u for t in _TRANSFER):
             sm.close(session_id)
             spoken = (
-                "Of course - I'll transfer you to a member of our team now. "
+                "Of course. I'll transfer you to a member of our team now. "
                 "Please hold for a moment."
             )
             return self._quick(utterance, spoken, True, session, t0)
@@ -436,10 +488,25 @@ class Pipeline:
                     "schedule", "available", "appointment", "consultation", "general",
                     "follow", "reschedule", "speak", "help", "calling", "hello",
                 }
-                _words = utterance.lower().split()
+                # Bare filler/yes/no answers are not names either ("yes", "no" said
+                # to "Could I take your name please?" must not become caller_name).
+                _BARE_NONNAME = {
+                    "yes", "yeah", "yep", "no", "nope", "nah", "sure", "ok", "okay",
+                    "correct", "right", "wrong", "not", "quite", "actually",
+                    "hi", "hey", "hello", "hiya", "howdy", "sorry",
+                }
+                # Strip trailing punctuation before comparing - "hello?" split()
+                # into ["hello?"] never matches the bare word "hello" in either
+                # set above, letting a caller's greeting slip through as their
+                # "name" (it's still spoken back with the "?" attached too,
+                # doubling up against the confirm prompt's own "?").
+                _PUNCT = ".,!?;:'\""
+                raw_clean = raw.strip(_PUNCT)
+                _words = [w.strip(_PUNCT) for w in utterance.lower().split()]
                 _is_intent = (
                     len(_words) > 4
                     or any(w in _action_words for w in _words)
+                    or raw_clean.lower() in _BARE_NONNAME
                 )
                 if _is_intent:
                     if session.name_reask_count >= 2:
@@ -453,12 +520,22 @@ class Pipeline:
                     else:
                         session.name_reask_count += 1
                         session.touch()
-                        spoken = (
-                            "I need your name before I can help with that. "
-                            "Could you tell me your first and last name please?"
-                        )
+                        if session.name_reask_count >= 2:
+                            # Free-form re-asks keep failing - usually STT
+                            # mishearing the name, not the caller's fault -
+                            # switch to spelling instead of asking the same
+                            # open question a third time.
+                            spoken = (
+                                "Let's try that differently. Could you spell "
+                                "your name for me, letter by letter?"
+                            )
+                        else:
+                            spoken = (
+                                "I need your name before I can help with that. "
+                                "Could you tell me your name please?"
+                            )
                         return self._quick(utterance, spoken, False, session, t0)
-                name = _join_spelled_name(raw).title()
+                name = _join_spelled_name(raw_clean).title()
             # Guard: awaiting_name may have been cleared by the name_reask bypass above.
             # If so, skip name confirmation and fall through to normal turn processing.
             if not session.awaiting_name:
@@ -469,7 +546,7 @@ class Pipeline:
                 session.awaiting_name_confirm = True
                 session.touch()
                 spoken = (
-                    f"Thank you. Just to confirm - did I catch that correctly as {name}?"
+                    f"Thank you. Just to confirm, did I catch that correctly as {name}?"
                 )
                 return self._quick(utterance, spoken, False, session, t0)
 
@@ -478,8 +555,6 @@ class Pipeline:
             u = utterance.lower().strip()
             yes_words = {"yes", "yeah", "yep", "correct", "right", "that's right",
                          "yep that's right", "thats right", "that's correct", "sure"}
-            no_words  = {"no", "nope", "wrong", "not quite", "actually", "it's",
-                         "its", "i'm", "my name is"}
             session.awaiting_name_confirm = False
             if any(w in u for w in yes_words):
                 session.touch()
@@ -504,39 +579,113 @@ class Pipeline:
                     session.awaiting_name_confirm = False
                     session.name_reask_count += 1
                     session.touch()
-                    spoken = (
-                        "I still need your name before I can help with that. "
-                        "Could you tell me your first and last name please?"
-                    )
+                    if session.name_reask_count >= 2:
+                        spoken = (
+                            "Let's try that differently. Could you spell your "
+                            "name for me, letter by letter?"
+                        )
+                    else:
+                        spoken = (
+                            "I still need your name before I can help with that. "
+                            "Could you tell me your name please?"
+                        )
                     return self._quick(utterance, spoken, False, session, t0)
-                # They're correcting - re-capture from this utterance
+                _BAD_NAME_WORDS = {"no", "nope", "not", "wrong", "nothing", "none",
+                                   "script", "correct", "right", "sure", "actually",
+                                   "quite", "yes", "yeah"}
+
+                # Partial correction: "my last name is Vich" / "surname is Vich" /
+                # "first name is Karan" only fixes that one part, keeping the rest
+                # of the already-captured name, rather than discarding everything
+                # and re-asking from scratch.
+                import re as _re_part
+                last_match = _re_part.search(
+                    r"(?:last name|surname|family name)(?:'s|\s+is|\s+was)?\s+"
+                    r"([A-Za-z][A-Za-z\-']*)",
+                    utterance, _re_part.IGNORECASE)
+                first_match = _re_part.search(
+                    r"first name(?:'s|\s+is|\s+was)?\s+([A-Za-z][A-Za-z\-']*)",
+                    utterance, _re_part.IGNORECASE)
+                if last_match or first_match:
+                    existing = (session.caller_name or "").split()
+                    ok = True
+                    if last_match:
+                        new_last = _join_spelled_name(last_match.group(1)).title()
+                        if new_last.lower() in _BAD_NAME_WORDS:
+                            ok = False
+                        else:
+                            existing = (existing[:-1] if len(existing) > 1 else []) + [new_last]
+                    if ok and first_match:
+                        new_first = _join_spelled_name(first_match.group(1)).title()
+                        if new_first.lower() in _BAD_NAME_WORDS:
+                            ok = False
+                        else:
+                            existing = [new_first] + (existing[1:] if len(existing) > 1 else [])
+                    if ok and existing:
+                        session.caller_name = " ".join(existing)
+                        session.awaiting_name_confirm = True
+                        session.touch()
+                        spoken = (
+                            f"Thank you. Just to confirm, did I catch that correctly "
+                            f"as {session.caller_name}?"
+                        )
+                        return self._quick(utterance, spoken, False, session, t0)
+
+                # They're correcting the whole name - re-capture from this utterance.
+                # Negative lookahead stops "it's not correct" / "it's not script"
+                # (a rejection, not a name) from being parsed as a name at all.
                 import re as _re2
                 match2 = _re2.search(
                     r"(?:it'?s|i'?m|this is|my name is|name'?s|actually|call me)\s+"
-                    r"([A-Za-z][A-Za-z\s\-']+)",
+                    r"(?!not\b|n't\b|no\b)([A-Za-z][A-Za-z\s\-']+)",
                     utterance, _re2.IGNORECASE
                 )
                 spelled2 = _extract_spelled_name(utterance)
+                new_name = None
                 if spelled2:
-                    session.caller_name = spelled2
+                    new_name = spelled2
                 elif match2:
-                    session.caller_name = _join_spelled_name(match2.group(1).strip()).title()
-                session.touch()
-                spoken = (
-                    f"Apologies! Thanks {session.caller_name}. How can I help you today? "
-                    f"I can help with booking, cancellations, or checking availability."
-                )
+                    cand = _join_spelled_name(match2.group(1).strip()).title()
+                    if cand and cand.lower() not in _BAD_NAME_WORDS:
+                        new_name = cand
+                if new_name:
+                    session.caller_name = new_name
+                    session.touch()
+                    spoken = (
+                        f"Apologies! Thanks {session.caller_name}. How can I help you today? "
+                        f"I can help with booking, cancellations, or checking availability."
+                    )
+                else:
+                    # No usable name in the correction - don't keep the rejected
+                    # name or a garbage capture, ask again cleanly instead.
+                    session.caller_name = None
+                    session.awaiting_name = True
+                    session.name_reask_count += 1
+                    session.touch()
+                    if session.name_reask_count >= 2:
+                        # Free-form re-asks keep failing - usually STT
+                        # mishearing the name, not the caller's fault -
+                        # switch to spelling instead of asking the same
+                        # open question a third time.
+                        spoken = (
+                            "Let's try that differently. Could you spell your "
+                            "name for me, letter by letter?"
+                        )
+                    else:
+                        spoken = "Sorry about that. Could you tell me your name again please?"
             return self._quick(utterance, spoken, False, session, t0)
 
         if session.turn_count == 0 and session.caller_name is None:
-            # First turn - greet and capture name
+            # First turn - greet and capture name. Normally unreached in the
+            # voice demos (call_ui.py / demo.py call greet() proactively
+            # before the caller says anything - see that method). Kept here
+            # as a fallback for entry points that pass the caller's own
+            # first utterance straight into run() (e.g. backend.py's HTTP
+            # /turn endpoint), so the greeting still fires even if nothing
+            # called greet() first.
             session.awaiting_name = True
             session.touch()
-            spoken = (
-                "Thank you for calling City Medical Practice. "
-                "Please note that this call may be recorded for quality and training purposes. "
-                "Could I take your name please?"
-            )
+            spoken = GREETING
             return self._quick(utterance, spoken, False, session, t0)
 
         # 2. Pending slot confirmation - caller said yes/no to a suggestion
@@ -560,14 +709,19 @@ class Pipeline:
                 book_slot(slot["date"], slot["time"], slot["service"])
                 session.clear()
                 name_part = f", {session.caller_name}" if session.caller_name else ""
-                from datetime import datetime as _dt
-                d = _dt.strptime(slot["date"], "%Y-%m-%d")
-                t = _dt.strptime(slot["time"], "%H:%M")
-                day_str = f"{d.strftime('%A')} {_ordinal(d.day)} {d.strftime('%B')}"
+                # Was hand-building the date string here (a second copy of
+                # calendar_store's _fmt_slot logic, already out of sync - it
+                # said "Monday 13th July" while the shared formatter now says
+                # "Monday the 13th of July"). Reusing describe_slot() also
+                # fixes "I've booked your general for..." (missing the word
+                # "appointment") since it uses the proper service labels.
+                _save_message(session_id, session.caller_name,
+                              f"[booking confirmed] {describe_slot(slot)}")
                 spoken = (
-                    f"Brilliant{name_part}. I've booked your {slot['service'].replace('_', ' ')} "
-                    f"for {day_str} at {t.strftime('%I:%M %p').lstrip('0')}. "
-                    f"You'll receive a confirmation shortly. Is there anything else I can help you with?"
+                    f"Brilliant{name_part}. I've booked {describe_slot(slot)}. "
+                    f"In a full deployment this would trigger an email or SMS "
+                    f"confirmation, though that's outside scope for this prototype. "
+                    f"Is there anything else I can help you with?"
                 )
                 return self._quick(utterance, spoken, False, session, t0)
 
@@ -617,7 +771,7 @@ class Pipeline:
                     if slot["date"] != req_date:
                         from datetime import datetime as _dtreq
                         req_d = _dtreq.strptime(req_date, "%Y-%m-%d")
-                        req_day = f"{req_d.strftime('%A')} {_ordinal(req_d.day)} {req_d.strftime('%B')}"
+                        req_day = f"{req_d.strftime('%A')} the {_ordinal(req_d.day)} of {req_d.strftime('%B')}"
                         spoken = (
                             f"I'm afraid I don't have anything available on {req_day}. "
                             f"The nearest I have is {describe_slot(slot)}. Would that work for you?"
@@ -626,10 +780,23 @@ class Pipeline:
                         spoken = f"How about {describe_slot(slot)}? Would that suit you?"
                     return self._quick(utterance, spoken, False, session, t0)
                 else:
+                    # Used to ask "could I take your number" here, but nothing
+                    # in the app ever captured the reply - the next thing the
+                    # caller said just got sent to the LLM as an unrelated
+                    # new turn. Asking for information you then throw away is
+                    # worse than not asking, so this no longer asks for
+                    # anything new; it logs the request so a human has
+                    # something to act on (same pattern as cancellation
+                    # requests and booking confirmations). Read the service
+                    # before clearing pending_suggestion below, not after.
+                    _svc = session.pending_suggestion.get("service")
                     session.pending_suggestion = None
+                    _save_message(session_id, session.caller_name,
+                                  f"[callback requested] no availability near requested date "
+                                  f"for service={_svc}")
                     spoken = (
                         "I'm afraid I don't have any availability around that date. "
-                        "Could I take your number and have someone call you back?"
+                        "I'll get a member of the team to call you back during business hours."
                     )
                     return self._quick(utterance, spoken, False, session, t0)
 
@@ -660,10 +827,15 @@ class Pipeline:
                     spoken = f"How about {describe_slot(slot)}? Would that suit you?"
                     return self._quick(utterance, spoken, False, session, t0)
                 else:
+                    # Same dead-end fix as above - see comment there. Read
+                    # the service before clearing pending_suggestion.
+                    _svc = session.pending_suggestion.get("service")
                     session.pending_suggestion = None
+                    _save_message(session_id, session.caller_name,
+                                  f"[callback requested] no more available slots for service={_svc}")
                     spoken = (
                         "I'm afraid I don't have any more available slots at the moment. "
-                        "Could I take your number and have someone call you back?"
+                        "I'll get a member of the team to call you back during business hours."
                     )
                     return self._quick(utterance, spoken, False, session, t0)
 
@@ -672,12 +844,17 @@ class Pipeline:
         # phrases so it never hijacks a normal turn; declines to a proposed slot are handled
         # above via pending_suggestion, so "no" alone does not reach here mid-negotiation.
         _u = utterance.lower().strip().rstrip(".!?")
-        _bye_exact = {"bye", "no thanks", "no thank you", "no that's all", "no thats all",
-                      "that's it", "thats it"}
+        _bye_exact = {"bye", "that's it", "thats it"}
+        # Substring-matched (not exact) so preambles like "I said no thanks" or
+        # "um, thank you" still close the call. "thanks"/"thank you" bare is
+        # deliberately included: after "anything else I can help with?" a bare
+        # thanks means the caller is done, matching what _mock_output already
+        # treats as end_call - keeps real-model and mock behaviour consistent
+        # instead of the real model guessing clarify/out_of_scope on it.
         _bye_phrases = ("goodbye", "good bye", "that's all", "thats all", "that is all",
                         "that will be all", "that'll be all", "nothing else", "nothing more",
                         "all done", "we're done", "were done", "i'm done", "im done",
-                        "no that's all", "no thanks that")
+                        "no that's all", "no thanks", "no thank you", "thank you", "thanks")
         if _u in _bye_exact or any(ph in _u for ph in _bye_phrases):
             sm.close(session_id)
             return {
@@ -720,7 +897,7 @@ class Pipeline:
         if validated and validated.action.value == "check_availability":
             preferred_date = getattr(validated, "date", None)
             service        = getattr(validated, "service", None)
-            svc_str        = service.value if service else None
+            svc_str        = _safe_service(service.value if service else None, entities)
             slot = get_next_slot(service=svc_str, preferred_date=preferred_date,
                                  skip=session.suggestion_index)
             if slot:
@@ -748,15 +925,15 @@ class Pipeline:
             elif c == 2:
                 spoken = (
                     "I'm sorry, I'm having trouble understanding. "
-                    "Could you try saying the date like 'Tuesday the 8th', "
-                    "the time like '10am' or '2:30pm', "
-                    "and the type - general, consultation, or follow-up?"
+                    "Could you try saying the date, like Tuesday the 8th, "
+                    "the time, like ten in the morning or half past two, "
+                    "and the type of appointment: general, consultation, or follow-up?"
                 )
             elif c == 3:
                 spoken = (
                     "I'm still not quite catching that. "
-                    "Let me try once more - please say something like: "
-                    "'Book a general appointment on Monday at 10am.'"
+                    "Let me try once more. Please say something like: "
+                    "book a general appointment on Monday at ten in the morning."
                 )
             else:
                 # 4th failure - end call gracefully
@@ -787,10 +964,18 @@ class Pipeline:
                 has_date = bool(entities.get("date_resolved"))
                 has_time = bool(entities.get("time_resolved"))
                 if has_date and has_time:
-                    book_slot(validated.date, validated.time, validated.service.value)
+                    booked_svc = _safe_service(validated.service.value, entities)
+                    if booked_svc != validated.service.value:
+                        # Keep the spoken confirmation in sync with what's
+                        # actually booked - never say "follow-up" while
+                        # booking "general" underneath it.
+                        validated.service = validated.service.__class__(booked_svc)
+                    book_slot(validated.date, validated.time, booked_svc)
                     spoken = render_confirmation(validated)
                 else:
-                    svc = validated.service.value if getattr(validated, "service", None) else None
+                    svc = _safe_service(
+                        validated.service.value if getattr(validated, "service", None) else None,
+                        entities)
                     slot = get_next_slot(service=svc,
                                          preferred_date=(validated.date if has_date else None))
                     if slot:
@@ -814,6 +999,28 @@ class Pipeline:
                     f"our reception team, who will confirm it and be in touch. "
                     f"Is there anything else I can help you with?"
                 )
+            elif validated.action.value == "clarify" and "date" in (validated.missing_fields or []):
+                # Don't ask an open "which date would you like" question when
+                # we can just offer a real slot instead - the caller doesn't
+                # know the calendar, so a concrete first offer to accept or
+                # reject is faster than a blind date request, and reuses the
+                # same yes/no + "how about a specific day" flow as everywhere
+                # else (see pending_suggestion handling above).
+                svc_str = _safe_service(
+                    validated.service.value if getattr(validated, "service", None) else None,
+                    entities)
+                slot = get_next_slot(service=svc_str, skip=session.suggestion_index)
+                if slot:
+                    session.pending_suggestion = slot
+                    session.touch()
+                    name_part = f", {session.caller_name}" if session.caller_name else ""
+                    spoken = (
+                        f"Of course{name_part}. The earliest I have available is "
+                        f"{describe_slot(slot)}. Would that work, or did you have a "
+                        f"different date in mind?"
+                    )
+                else:
+                    spoken = render_confirmation(validated)
             else:
                 spoken = render_confirmation(validated)
         else:
@@ -836,6 +1043,31 @@ class Pipeline:
             "end_call":     end_call,
             "caller_name":  session.caller_name,
         }
+
+    def greet(self, session_id: str = "default") -> dict:
+        """Return the call-opening greeting without needing caller input.
+
+        The caller shouldn't have to say something first before the
+        assistant speaks - a real receptionist answers and talks
+        immediately. Call this once, right when a call starts, before
+        listening for anything; speak its `spoken` text, then start
+        listening for the caller's name as normal.
+
+        This does not go through run()'s empty-input guard (which would
+        return "I didn't catch that" for a blank utterance) - it sets up
+        the session directly, mirroring the turn_count==0 branch inside
+        run() so the two stay in sync if the greeting logic changes.
+        """
+        try:
+            import src.session_manager as sm
+        except ImportError:
+            import session_manager as sm  # type: ignore[no-redef]
+
+        t0 = time.perf_counter()
+        session = sm.get_or_create(session_id)
+        session.awaiting_name = True
+        session.touch()
+        return self._quick("", GREETING, False, session, t0)
 
     def _quick(self, utterance: str, spoken: str, end_call: bool,
                session, t0: float) -> dict:

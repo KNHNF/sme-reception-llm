@@ -16,7 +16,7 @@ Handles booking, cancellations, availability checks, name capture, calendar sugg
 
 Deployed model: **Qwen 2.5 0.5B**, fine-tuned with QLoRA and quantised to Q4_K_M, running on CPU via llama.cpp. 100% action accuracy on the 60-record aligned test set, 814ms median latency on a laptop CPU with no GPU and no internet.
 
-### Fine-tuning is what makes the task work (aligned test set)
+### Fine-tuning is what makes the task work (GPU evaluation, 480-record synthetic set)
 
 | Condition                 | Action Accuracy | JSON valid | Exact Match |
 |---------------------------|-----------------|------------|-------------|
@@ -25,7 +25,7 @@ Deployed model: **Qwen 2.5 0.5B**, fine-tuned with QLoRA and quantised to Q4_K_M
 | Llama 3.2 3B (vanilla)    | 0.0%            | 0%         | 0.0%        |
 | Llama 3.2 3B (fine-tuned) | 99.8%           | 100%       | 70.4%       |
 
-Base models produce almost no valid JSON actions; fine-tuning on 600 synthetic samples takes both above 98%.
+Base models produce almost no valid JSON actions; fine-tuning takes both above 98%. Caveat: this GPU evaluation ran on the 480-record synthetic training set, so the fine-tuned rows are training-set accuracy. The held-out check is the 60-record aligned harness below, where the fine-tuned models still reach 98.3-100% action accuracy on data they never saw in training.
 
 ### Model-size sweep (CPU, Q4_K_M, 60-record aligned test set)
 
@@ -45,6 +45,8 @@ Accuracy holds from 3.8B down to 0.5B and breaks at 360M, so 0.5B is the smalles
 | Model             | Strict | Scope-aware | Mean WER |
 |-------------------|--------|-------------|----------|
 | Llama 3.2 3B      | 25.0%  | 70.0%       | 15.4%    |
+| Qwen 2.5 1.5B     | 15.0%  | 60.0%       | 15.4%    |
+| Llama 3.2 1B      | 15.0%  | 60.0%       | 15.4%    |
 | **Qwen 2.5 0.5B** | 30.0%  | 75.0%       | 15.4%    |
 | SmolLM2 360M      | 20.0%  | 50.0%       | 15.4%    |
 
