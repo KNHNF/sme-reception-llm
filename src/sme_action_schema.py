@@ -123,8 +123,7 @@ CONFIRMATION_TEMPLATES = {
     ),
     ActionType.book_appointment: (
         "I have booked your {service_label} for {date_str} at {time_str}. "
-        "In a full deployment this would trigger an email or SMS confirmation, "
-        "though that's outside scope for this prototype."
+        "Is there anything else I can help you with?"
     ),
     ActionType.cancel_appointment: (
         "Your appointment has been cancelled. "
@@ -192,8 +191,7 @@ def render_confirmation(action_obj: BaseModel) -> str:
             f"I have booked {label} for {day_str} "
             f"at {t.strftime('%I:%M %p').lstrip('0')}. "
             f"The appointment is {duration}. "
-            f"In a full deployment this would trigger an email or SMS "
-            f"confirmation, though that's outside scope for this prototype."
+            f"Is there anything else I can help you with?"
         )
 
     elif a == ActionType.cancel_appointment:

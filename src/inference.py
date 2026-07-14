@@ -136,6 +136,127 @@ MODEL_IDS = {
     "llama3": "meta-llama/Llama-3.2-3B-Instruct",
 }
 
+# Caller signals they're done. Module-level (was previously defined inline,
+# twice in effect) so the pending_suggestion branch can check it too - "no
+# thank you" while a slot is on offer used to be swallowed by no_words'
+# bare "no" and treated as "reject this slot, offer another" instead of
+# "I'm done", so the call never ended even though the caller said thanks
+# and hung up in spirit.
+_BYE_EXACT = {"bye", "that's it", "thats it"}
+_BYE_PHRASES = (
+    "goodbye", "good bye", "that's all", "thats all", "that is all",
+    "that will be all", "that'll be all", "nothing else", "nothing more",
+    "all done", "we're done", "were done", "i'm done", "im done",
+    "no that's all", "no thanks", "no thank you", "thank you", "thanks",
+)
+
+# --- Third-party booking ("book an appointment for my son") -----------------
+# Relation-word list only, not freeform names. Freeform "for <Name>" collides
+# with too many other "for" usages in a booking sentence (dates, reasons,
+# services) to detect reliably without false positives, so this only fires on
+# an explicit family/relation word, which is unambiguous.
+_ON_BEHALF_RE = _re_top.compile(
+    r"\bfor (?:my |our )(son|daughter|wife|husband|partner|mother|father|"
+    r"mum|mom|dad|child|kid|sister|brother|grandson|granddaughter|"
+    r"grandmother|grandfather)\b",
+    _re_top.IGNORECASE,
+)
+
+
+def _word_match(text: str, phrases) -> bool:
+    """True if any phrase appears in `text` as a whole word/phrase, not as
+    a raw substring.
+
+    Found via a live test run, not hypothetical: yes_words' bare "ok" is a
+    substring of "book" ("b-OO-K"), so "Can I book a consultation and a
+    follow-up" matched yes_words and silently confirmed whatever slot was
+    already pending - ignoring the caller's actual request and booking the
+    wrong thing. no_words has the identical exposure via bare "no" (inside
+    "know", "unknown", "annotate", etc). Word-boundaried regex per phrase
+    fixes both while still matching multi-word phrases as a contiguous unit.
+    """
+    return any(_re_top.search(rf"\b{_re_top.escape(p)}\b", text) for p in phrases)
+
+
+def _behalf_note(session) -> str:
+    """' This booking is for your son.' or '' if booking for the caller."""
+    rel = getattr(session, "on_behalf_of", None)
+    return f" This booking is for your {rel}." if rel else ""
+
+
+# --- Doctor/practitioner-specific requests -----------------------------------
+# The service model has no practitioner field at all, so this used to fall
+# through to a generic out_of_scope reply from the LLM - honest but not
+# helpful, since it never acknowledges the preference was heard. Detected up
+# front, logged for the human team, and answered plainly instead: no
+# guarantee of a specific doctor on this line, but noted.
+_DOCTOR_RE = _re_top.compile(
+    r"\b(?:with|see|for)\s+(?:dr\.?|doctor)\s+([A-Za-z]+)"
+    r"|\b(same doctor|usual doctor|usual gp)\b",
+    _re_top.IGNORECASE,
+)
+
+# --- Multi-service requests ("a consultation and a follow-up") --------------
+_SERVICE_KW_MAP = {
+    "consultation": ("consultation", "consult"),
+    "follow_up":    ("follow-up", "follow up", "followup"),
+    "general":      ("general appointment", "general"),
+}
+_SERVICE_LABELS = {
+    "general": "a general appointment", "consultation": "a consultation",
+    "follow_up": "a follow-up",
+}
+
+
+def _all_services_mentioned(text: str) -> list:
+    """Every service keyword-matched in the text, in the order checked.
+
+    entity_extractor.extract() only ever returns ONE service (first keyword
+    match, by design - a single action needs a single service). This is a
+    separate scan used only to detect when a caller asks for two services in
+    the same breath ("a consultation and a follow-up"), so the second one can
+    be queued instead of being silently discarded when extract() picks one.
+    """
+    low = text.lower()
+    return [svc for svc, kws in _SERVICE_KW_MAP.items() if any(kw in low for kw in kws)]
+
+
+def _queue_second_service(utterance: str, primary_svc: Optional[str], session) -> str:
+    """Queue a second mentioned service and return a short spoken addendum.
+
+    "" if only one service was mentioned, or one is already queued (so a
+    later, unrelated mention of a second service name later in the call
+    doesn't clobber an earlier queue before it's been offered).
+    """
+    if session.queued_service:
+        return ""
+    mentioned = _all_services_mentioned(utterance)
+    if len(mentioned) < 2:
+        return ""
+    other = next((s for s in mentioned if s != primary_svc), None)
+    if not other:
+        return ""
+    session.queued_service = other
+    return f" I'll come back to {_SERVICE_LABELS.get(other, other)} for you right after this."
+
+
+# --- Name correction after it's already been confirmed ----------------------
+# The awaiting_name_confirm branch handles corrections right after the name
+# is first given, but nothing re-opens name capture once that's resolved -
+# if a caller realises mid-call "actually my name's Karan, not Karen", there
+# was no path back. Deliberately requires an explicit correction cue
+# ("actually", "correction", "you have my name wrong") rather than matching
+# any sentence containing "my name" - a caller referencing their name for an
+# unrelated reason mid-conversation shouldn't silently overwrite it.
+_NAME_CORRECTION_RE = _re_top.compile(
+    r"my name'?s?\s+actually\s+([A-Za-z][A-Za-z\s\-']+)"
+    r"|actually,?\s+my name'?s?\s+([A-Za-z][A-Za-z\s\-']+)"
+    r"|my name is actually\s+([A-Za-z][A-Za-z\s\-']+)"
+    r"|correction,?\s+(?:it'?s|my name'?s?)\s+([A-Za-z][A-Za-z\s\-']+)"
+    r"|you (?:have|got) my name wrong,?\s+it'?s\s+([A-Za-z][A-Za-z\s\-']+)",
+    _re_top.IGNORECASE,
+)
+
 def build_prompt(utterance: str, entities: dict, partial_context: Optional[dict] = None,
                  model_family: str = "phi3") -> str:
     """
@@ -559,7 +680,7 @@ class Pipeline:
             yes_words = {"yes", "yeah", "yep", "correct", "right", "that's right",
                          "yep that's right", "thats right", "that's correct", "sure"}
             session.awaiting_name_confirm = False
-            if any(w in u for w in yes_words):
+            if _word_match(u, yes_words):
                 session.touch()
                 spoken = (
                     f"Great, thanks {session.caller_name}. How can I help you today? "
@@ -691,42 +812,198 @@ class Pipeline:
             spoken = GREETING
             return self._quick(utterance, spoken, False, session, t0)
 
+        # 1b. Name correction, mid-call. Only reachable here once name capture/
+        # confirm has already resolved (both return early above otherwise).
+        _name_fix = _NAME_CORRECTION_RE.search(utterance)
+        if _name_fix and session.caller_name:
+            new_name = next(g for g in _name_fix.groups() if g)
+            new_name = _join_spelled_name(new_name.strip()).title()
+            old_name = session.caller_name
+            session.caller_name = new_name
+            session.touch()
+            spoken = (
+                f"Apologies for the mix-up! I've corrected that from {old_name} to "
+                f"{new_name}. Now, how can I help you today?"
+            )
+            return self._quick(utterance, spoken, False, session, t0)
+
+        # 1c. Third-party booking ("for my son"). Side-effect only, no
+        # return - runs every turn so it can be said at any point in the
+        # call, and lets normal processing continue underneath it.
+        _ob = _ON_BEHALF_RE.search(utterance)
+        if _ob:
+            session.on_behalf_of = _ob.group(1).lower()
+            session.touch()
+
+        # 1d. Doctor/practitioner request. Only intercepts the turn when
+        # there's no active slot negotiation - mid pending_suggestion, a
+        # doctor mention should be noted (see 2's own check below) without
+        # derailing the yes/no flow already in progress.
+        _doc = _DOCTOR_RE.search(utterance)
+        if _doc and not session.pending_suggestion:
+            name_group = _doc.group(1)
+            practitioner = f"Dr {name_group.title()}" if name_group else "a specific doctor"
+            session.requested_practitioner = practitioner
+            session.touch()
+            _save_message(session_id, session.caller_name,
+                          f"[practitioner preference] caller requested {practitioner}")
+            name_part = f", {session.caller_name}" if session.caller_name else ""
+            spoken = (
+                f"I'm not able to guarantee a specific doctor on this automated "
+                f"line{name_part}, but I've noted that you'd like {practitioner} and "
+                f"passed it to the team - they'll do their best to accommodate it. "
+                f"In the meantime, I can still check availability or book you in. "
+                f"What would you like?"
+            )
+            return self._quick(utterance, spoken, False, session, t0)
+
         # 2. Pending slot confirmation - caller said yes/no to a suggestion
         if session.pending_suggestion:
             u = utterance.lower()
+            _u_stripped = u.strip().rstrip(".!?")
+
+            # Caller is done, mid-negotiation. Checked before yes/no below:
+            # "no thank you" / "no thanks" contain "no" and used to be read
+            # as "reject this slot, offer me another" (no_words matched on
+            # the bare "no" substring), so the call never actually ended -
+            # it just kept fishing for a slot nobody wanted. A real declined
+            # slot never gets confirmed, so there is nothing to un-book here.
+            if _u_stripped in _BYE_EXACT or any(ph in _u_stripped for ph in _BYE_PHRASES):
+                sm.close(session_id)
+                return {
+                    "raw_output":  "",
+                    "action":      {"action": "end_call"},
+                    "validated":   True,
+                    "spoken":      "No problem. Thank you for calling. Have a good day. Goodbye.",
+                    "latency_ms":  round((time.perf_counter() - t0) * 1000, 2),
+                    "entities":    {},
+                    "end_call":    True,
+                    "caller_name": session.caller_name,
+                }
+
+            # Caller didn't hear the offer, mid-negotiation. Without this,
+            # "sorry, what?" matched none of yes/no/date/service below, fell
+            # straight out of this block, and got sent to the LLM as a brand
+            # new out_of_scope-looking utterance - the pending offer was
+            # still set internally but never re-spoken, so the caller was
+            # just met with a confused "I can help with booking..." reply
+            # instead of hearing the slot again.
+            _REPEAT_EXACT = {"sorry", "pardon", "what", "huh", "come again", "one more time"}
+            _REPEAT_PHRASES = ("say that again", "repeat that", "can you repeat",
+                                "didn't catch that", "didnt catch that", "excuse me",
+                                "say again")
+            if _u_stripped in _REPEAT_EXACT or any(p in _u_stripped for p in _REPEAT_PHRASES):
+                slot = session.pending_suggestion
+                spoken = f"Sure - {describe_slot(slot)}. Does that work for you?"
+                return self._quick(utterance, spoken, False, session, t0)
+
             yes_words = {"yes", "yeah", "yep", "sure", "ok", "okay", "please",
                          "that works", "that's fine", "sounds good", "sounds great",
                          "perfect", "great", "go on", "go ahead", "that'll do",
                          "that will do", "lovely", "brilliant", "works for me",
                          "do that", "book it", "book that", "let's do it",
                          "yes please", "sounds perfect"}
+            # "next" (bare) was removed - it collided with "next consultation
+            # available" / "next Tuesday" style requests, which are a service
+            # or date change, not a plain decline. "next one"/"next slot"
+            # keep the plain-decline meaning ("just give me the next slot").
             no_words  = {"no", "nope", "nah", "different", "another", "else",
-                         "not that", "other", "later", "earlier", "next",
-                         "not now", "leave it", "forget it", "some other time"}
+                         "not that", "other", "later", "earlier", "next one",
+                         "next slot", "not now", "leave it", "forget it",
+                         "some other time"}
             # Words that mean "a different day entirely" (not just a later time slot)
             diff_day_words = {"date", "day", "week", "monday", "tuesday", "wednesday",
                               "thursday", "friday"}
 
-            if any(w in u for w in yes_words):
+            if _word_match(u, yes_words):
                 slot = session.pending_suggestion
-                book_slot(slot["date"], slot["time"], slot["service"])
-                session.clear()
                 name_part = f", {session.caller_name}" if session.caller_name else ""
-                # Was hand-building the date string here (a second copy of
-                # calendar_store's _fmt_slot logic, already out of sync - it
-                # said "Monday 13th July" while the shared formatter now says
-                # "Monday the 13th of July"). Reusing describe_slot() also
-                # fixes "I've booked your general for..." (missing the word
-                # "appointment") since it uses the proper service labels.
-                _save_message(session_id, session.caller_name,
-                              f"[booking confirmed] {describe_slot(slot)}")
-                spoken = (
-                    f"Brilliant{name_part}. I've booked {describe_slot(slot)}. "
-                    f"In a full deployment this would trigger an email or SMS "
-                    f"confirmation, though that's outside scope for this prototype. "
-                    f"Is there anything else I can help you with?"
-                )
-                return self._quick(utterance, spoken, False, session, t0)
+                if book_slot(slot["date"], slot["time"], slot["service"]):
+                    # Read before clear() - queued_service itself survives
+                    # clear() by design (see session_manager.Session), but
+                    # capturing it here keeps this branch readable either way.
+                    _queued = session.queued_service
+                    behalf_note = _behalf_note(session)
+                    session.clear()
+                    # Was hand-building the date string here (a second copy of
+                    # calendar_store's _fmt_slot logic, already out of sync - it
+                    # said "Monday 13th July" while the shared formatter now says
+                    # "Monday the 13th of July"). Reusing describe_slot() also
+                    # fixes "I've booked your general for..." (missing the word
+                    # "appointment") since it uses the proper service labels.
+                    _save_message(session_id, session.caller_name,
+                                  f"[booking confirmed] {describe_slot(slot)}")
+                    if _queued:
+                        # Second service from an earlier "a consultation and a
+                        # follow-up" request - chain straight into offering it
+                        # instead of ending the flow, so it doesn't get
+                        # silently dropped once this booking clears the session.
+                        session.queued_service = None
+                        next_slot = get_next_slot(service=_queued, skip=0)
+                        svc_label = _SERVICE_LABELS.get(_queued, _queued)
+                        if next_slot:
+                            session.pending_suggestion = next_slot
+                            session.touch()
+                            spoken = (
+                                f"Brilliant{name_part}. I've booked {describe_slot(slot)}."
+                                f"{behalf_note} Now, for the {svc_label}, how about "
+                                f"{describe_slot(next_slot)}? Would that work too?"
+                            )
+                        else:
+                            _save_message(session_id, session.caller_name,
+                                          f"[callback requested] no availability for "
+                                          f"queued service={_queued}")
+                            spoken = (
+                                f"Brilliant{name_part}. I've booked {describe_slot(slot)}."
+                                f"{behalf_note} I'm afraid I don't have anything available "
+                                f"for the {svc_label} right now - I'll get a member of the "
+                                f"team to call you back about that one. Is there anything "
+                                f"else I can help you with?"
+                            )
+                            # Chain has ended (nothing more to offer for this
+                            # person) even though it didn't end cleanly -
+                            # same reset as the plain no-queue branch below.
+                            session.on_behalf_of = None
+                    else:
+                        spoken = (
+                            f"Brilliant{name_part}. I've booked {describe_slot(slot)}."
+                            f"{behalf_note} Is there anything else I can help you with?"
+                        )
+                        # Booking flow for this person is fully resolved -
+                        # clear so a later, unrelated request in the same
+                        # call ("do you have anything on Monday?", nothing
+                        # to do with the son) doesn't inherit a stale
+                        # "This booking is for your son" note. Kept alive
+                        # while a queued_service chain is still running
+                        # (both branches above), since that's still the
+                        # same person's booking.
+                        session.on_behalf_of = None
+                    return self._quick(utterance, spoken, False, session, t0)
+                else:
+                    # Someone else booked this exact slot between it being
+                    # offered and confirmed (a real race, not hypothetical -
+                    # book_slot() now actually checks and reports this
+                    # instead of silently double-booking). Don't claim
+                    # success, find the next real slot and offer that.
+                    next_slot = get_next_slot(
+                        service=slot["service"], skip=session.suggestion_index + 1)
+                    if next_slot:
+                        session.pending_suggestion = next_slot
+                        session.suggestion_index += 1
+                        session.touch()
+                        spoken = (
+                            f"I'm sorry{name_part}, that slot was just taken by another "
+                            f"caller. The next available is {describe_slot(next_slot)}. "
+                            f"Does that work for you?"
+                        )
+                    else:
+                        session.pending_suggestion = None
+                        spoken = (
+                            f"I'm sorry{name_part}, that slot was just taken by another "
+                            f"caller, and I don't have another one immediately available. "
+                            f"I'll get a member of the team to call you back."
+                        )
+                    return self._quick(utterance, spoken, False, session, t0)
 
             # Check for a specific date request BEFORE the general no_words check.
             # "the 26th", "on Friday", "if possible on the 24th" - NER + regex fallback.
@@ -803,7 +1080,98 @@ class Pipeline:
                     )
                     return self._quick(utterance, spoken, False, session, t0)
 
-            if any(w in u for w in no_words):
+            # Explicit service switch ("make it a consultation", "when's the
+            # next consultation available", "actually a follow-up"). This is
+            # the real bug from the 2026-07-14 transcript: "Can we make it a
+            # consultation? When is the next consultation available?" has
+            # "next" in it, which used to be a no_words match, so it fell
+            # into the plain-decline branch below and searched the next slot
+            # of the OLD service (general) - the caller's actual request to
+            # switch service was silently dropped and they were offered a
+            # general appointment again. Checked before no_words so a service
+            # mention always wins over an incidental "next"/"different" in
+            # the same sentence. Only fires when the requested service
+            # differs from what's already pending, so "yes, a consultation
+            # is fine" (restating the same service while accepting) doesn't
+            # get reinterpreted as a switch - that's handled by yes_words above.
+            _req_service = _ents.get("service")
+            if _req_service and _req_service != session.pending_suggestion.get("service"):
+                session.suggestion_index = 0
+                slot = get_next_slot(
+                    service=_req_service,
+                    preferred_date=session.pending_suggestion.get("date"),
+                    skip=0,
+                )
+                if not slot:
+                    # Nothing on/near the currently offered date for the new
+                    # service - fall back to the earliest slot of that
+                    # service anywhere in the calendar, rather than giving up.
+                    slot = get_next_slot(service=_req_service, skip=0)
+                if slot:
+                    session.pending_suggestion = slot
+                    session.touch()
+                    # "Can I book a consultation and a follow-up" said while
+                    # a different service is already pending goes through
+                    # this switch branch, not the fresh-request branches -
+                    # needs the same second-service queue check or the
+                    # follow-up half gets silently dropped again.
+                    multi_note = _queue_second_service(utterance, _req_service, session)
+                    spoken = f"How about {describe_slot(slot)}?{multi_note} Would that suit you?"
+                else:
+                    _save_message(session_id, session.caller_name,
+                                  f"[callback requested] no availability for service={_req_service}")
+                    session.pending_suggestion = None
+                    spoken = (
+                        "I'm afraid I don't have any availability for that at the moment. "
+                        "I'll get a member of the team to call you back during business hours."
+                    )
+                return self._quick(utterance, spoken, False, session, t0)
+
+            # Bare time-only correction ("do you have anything at 2pm",
+            # "what about half past three") with no date change and no
+            # service change. Previously fell through unhandled - not a
+            # yes/no word, not a date entity, not a service switch - so it
+            # either matched no_words on an unrelated substring or reached
+            # the LLM as an unrelated new turn, losing the pending offer
+            # either way. Same-day-first: try to find that exact time on the
+            # currently offered date, then the nearest later time that same
+            # day, then fall back to the first future slot at that exact
+            # time on any day. Single find_slots() call (skip=0, first 10),
+            # same effort level as the date-request check above it - not the
+            # 30-page exhaustive scan the plain-decline branch uses below.
+            _req_time = _ents.get("time_resolved")
+            if _req_time and _req_time != session.pending_suggestion.get("time"):
+                _svc = session.pending_suggestion.get("service")
+                _pref_date = session.pending_suggestion.get("date")
+                _candidates = find_slots(service=_svc, preferred_date=_pref_date, skip=0)
+                _same_day = [s for s in _candidates if s["date"] == _pref_date]
+                slot = next((s for s in _same_day if s["time"] == _req_time), None)
+                if not slot:
+                    _later_same_day = sorted(
+                        (s for s in _same_day if s["time"] >= _req_time),
+                        key=lambda s: s["time"])
+                    slot = _later_same_day[0] if _later_same_day else None
+                if not slot:
+                    slot = next((s for s in _candidates if s["time"] == _req_time), None)
+                if not slot and _candidates:
+                    slot = _candidates[0]
+                if slot:
+                    session.pending_suggestion = slot
+                    session.suggestion_index = 0
+                    session.touch()
+                    spoken = f"How about {describe_slot(slot)}? Would that suit you?"
+                else:
+                    _save_message(session_id, session.caller_name,
+                                  f"[callback requested] no slot near time={_req_time} "
+                                  f"for service={_svc}")
+                    session.pending_suggestion = None
+                    spoken = (
+                        "I'm afraid I don't have anything at that time. "
+                        "I'll get a member of the team to call you back during business hours."
+                    )
+                return self._quick(utterance, spoken, False, session, t0)
+
+            if _word_match(u, no_words):
                 session.suggestion_index += 1
                 # Track exactly which slot just got turned down, by identity,
                 # not by position. The old approach re-searched with a global
@@ -829,7 +1197,7 @@ class Pipeline:
 
                 # "later date" / "another day" = jump to NEXT calendar day entirely.
                 # "later" / "earlier" alone = same day different time -> keep preferred_date.
-                _wants_diff_day = any(w in u for w in diff_day_words)
+                _wants_diff_day = _word_match(u, diff_day_words)
                 if _wants_diff_day:
                     # Filter all future slots to those strictly after the current suggested date
                     _current_date = session.pending_suggestion.get("date")
@@ -876,19 +1244,14 @@ class Pipeline:
         # call, not be sent to the model and misread as out_of_scope. Kept to clear terminal
         # phrases so it never hijacks a normal turn; declines to a proposed slot are handled
         # above via pending_suggestion, so "no" alone does not reach here mid-negotiation.
-        _u = utterance.lower().strip().rstrip(".!?")
-        _bye_exact = {"bye", "that's it", "thats it"}
         # Substring-matched (not exact) so preambles like "I said no thanks" or
         # "um, thank you" still close the call. "thanks"/"thank you" bare is
         # deliberately included: after "anything else I can help with?" a bare
         # thanks means the caller is done, matching what _mock_output already
         # treats as end_call - keeps real-model and mock behaviour consistent
         # instead of the real model guessing clarify/out_of_scope on it.
-        _bye_phrases = ("goodbye", "good bye", "that's all", "thats all", "that is all",
-                        "that will be all", "that'll be all", "nothing else", "nothing more",
-                        "all done", "we're done", "were done", "i'm done", "im done",
-                        "no that's all", "no thanks", "no thank you", "thank you", "thanks")
-        if _u in _bye_exact or any(ph in _u for ph in _bye_phrases):
+        _u = utterance.lower().strip().rstrip(".!?")
+        if _u in _BYE_EXACT or any(ph in _u for ph in _BYE_PHRASES):
             sm.close(session_id)
             return {
                 "raw_output":  "",
@@ -955,9 +1318,11 @@ class Pipeline:
                 parsed["date"] = slot["date"]
                 parsed["service"] = slot["service"]
                 name_part = f", {session.caller_name}" if session.caller_name else ""
+                multi_note = _queue_second_service(utterance, svc_str, session)
                 spoken = (
                     f"Of course{name_part}. The next available slot is "
-                    f"{describe_slot(slot)}. Does that work for you?"
+                    f"{describe_slot(slot)}.{_behalf_note(session)}{multi_note} "
+                    f"Does that work for you?"
                 )
             else:
                 spoken = (
@@ -1022,8 +1387,70 @@ class Pipeline:
                         # booking "general" underneath it.
                         validated.service = validated.service.__class__(booked_svc)
                         parsed["service"] = booked_svc  # keep the logged action in sync too
-                    book_slot(validated.date, validated.time, booked_svc)
-                    spoken = render_confirmation(validated)
+                    if book_slot(validated.date, validated.time, booked_svc):
+                        spoken = render_confirmation(validated)
+                        note = _behalf_note(session)
+                        multi_note = _queue_second_service(utterance, booked_svc, session)
+                        _queued = session.queued_service
+                        if _queued:
+                            # Same chaining as the pending_suggestion yes-branch:
+                            # don't let the second service get silently dropped.
+                            session.queued_service = None
+                            next_slot = get_next_slot(service=_queued, skip=0)
+                            svc_label = _SERVICE_LABELS.get(_queued, _queued)
+                            if next_slot:
+                                session.pending_suggestion = next_slot
+                                session.touch()
+                                tail = (f"Now, for the {svc_label}, how about "
+                                        f"{describe_slot(next_slot)}? Would that work too?")
+                                # Chain continues - same person, keep the note.
+                            else:
+                                _save_message(session_id, session.caller_name,
+                                              f"[callback requested] no availability for "
+                                              f"queued service={_queued}")
+                                tail = (f"I'm afraid I don't have anything available for "
+                                        f"the {svc_label} right now - I'll get a member of "
+                                        f"the team to call you back about that one. Is there "
+                                        f"anything else I can help you with?")
+                                # Chain ended (nothing left to offer) - clear so
+                                # it doesn't stick to a later unrelated request.
+                                session.on_behalf_of = None
+                            spoken = spoken.replace(
+                                "Is there anything else I can help you with?", tail)
+                        else:
+                            if note or multi_note:
+                                spoken = spoken.replace(
+                                    "Is there anything else I can help you with?",
+                                    f"{note.strip()}{multi_note} Is there anything else "
+                                    f"I can help you with?")
+                            # No queued service - this booking is the whole
+                            # flow for this person, fully resolved now. Clear
+                            # so a later, unrelated request in the same call
+                            # ("do you have anything on Monday?") doesn't
+                            # inherit a stale "for your son" note.
+                            session.on_behalf_of = None
+                    else:
+                        # Caller gave an exact date+time that's no longer free
+                        # (someone else took it first, or it was never really
+                        # available and the model didn't check) - same honesty
+                        # fix as the pending_suggestion yes-branch above, offer
+                        # a real alternative instead of confirming a phantom.
+                        alt = get_next_slot(service=booked_svc, preferred_date=validated.date)
+                        name_part = f", {session.caller_name}" if session.caller_name else ""
+                        if alt:
+                            session.pending_suggestion = alt
+                            session.touch()
+                            spoken = (
+                                f"I'm sorry{name_part}, that slot isn't available. "
+                                f"The nearest I have is {describe_slot(alt)}. "
+                                f"Would that work for you?"
+                            )
+                        else:
+                            spoken = (
+                                f"I'm sorry{name_part}, that slot isn't available and I "
+                                f"don't have another one nearby right now. I'll get a "
+                                f"member of the team to call you back."
+                            )
                 else:
                     svc = _safe_service(
                         validated.service.value if getattr(validated, "service", None) else None,
@@ -1041,8 +1468,10 @@ class Pipeline:
                         parsed["time"] = slot["time"]
                         parsed["service"] = slot["service"]
                         name_part = f", {session.caller_name}" if session.caller_name else ""
+                        multi_note = _queue_second_service(utterance, svc, session)
                         spoken = (f"Of course{name_part}. The next available slot is "
-                                  f"{describe_slot(slot)}. Does that work for you?")
+                                  f"{describe_slot(slot)}.{_behalf_note(session)}{multi_note} "
+                                  f"Does that work for you?")
                     else:
                         spoken = ("Of course. Which day and time would you like, and is it a "
                                   "general appointment, a consultation, or a follow-up?")
@@ -1076,10 +1505,11 @@ class Pipeline:
                     parsed["time"] = slot["time"]
                     parsed["service"] = slot["service"]
                     name_part = f", {session.caller_name}" if session.caller_name else ""
+                    multi_note = _queue_second_service(utterance, svc_str, session)
                     spoken = (
                         f"Of course{name_part}. The earliest I have available is "
-                        f"{describe_slot(slot)}. Would that work, or did you have a "
-                        f"different date in mind?"
+                        f"{describe_slot(slot)}.{_behalf_note(session)}{multi_note} Would that "
+                        f"work, or did you have a different date in mind?"
                     )
                 else:
                     spoken = render_confirmation(validated)

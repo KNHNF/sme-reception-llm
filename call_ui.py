@@ -332,6 +332,13 @@ class CallApp(tk.Tk):
         self._build_widgets()
         self.after(100, self._poll_queue)
         self.after(50, self._startup_check)
+        # Preload Whisper right away instead of waiting for the first "Start
+        # Call" click - previously the whole call opened with a real delay
+        # while the model loaded (worse for "small"), which is exactly the
+        # kind of dead air you don't want live in front of an audience.
+        # Threaded because model loading blocks for real; the window would
+        # otherwise freeze until it's done.
+        threading.Thread(target=self._ensure_stt, daemon=True).start()
 
         if _HAS_PSUTIL:
             self._proc = psutil.Process()
@@ -353,9 +360,22 @@ class CallApp(tk.Tk):
         tk.Label(top, text="SME Voice Assistant", font=("Segoe UI", 16, "bold"),
                  bg="white", fg="#222222").pack(side="left")
         bargein_tag = "barge-in on" if self.bargein else "barge-in off"
-        self.model_label = tk.Label(top, text=f"{self.family}  |  Whisper {self.whisper_model}  |  offline, CPU only  |  {bargein_tag}",
+        self.model_label = tk.Label(top, text=f"{self.family}  |  offline, CPU only  |  {bargein_tag}",
                                     font=normal, bg="white", fg="#666666")
         self.model_label.pack(side="left", padx=16)
+
+        # Whisper size picker - was a fixed --whisper CLI flag only, now
+        # switchable in-app without restarting. Reloads in the background;
+        # _on_whisper_change refuses the switch mid-call.
+        tk.Label(top, text="Whisper:", font=normal, bg="white", fg="#666666").pack(side="left")
+        self.whisper_var = tk.StringVar(value=self.whisper_model)
+        whisper_menu = tk.OptionMenu(top, self.whisper_var, "tiny", "small",
+                                     command=self._on_whisper_change)
+        whisper_menu.configure(font=normal, bg="white", relief="flat", highlightthickness=0)
+        whisper_menu.pack(side="left", padx=(4, 0))
+        self.whisper_status_label = tk.Label(top, text="not loaded yet", font=normal,
+                                             bg="white", fg="#999999")
+        self.whisper_status_label.pack(side="left", padx=(6, 0))
 
         status_row = tk.Frame(self, bg="white", padx=14, pady=4)
         status_row.pack(fill="x")
@@ -421,8 +441,28 @@ class CallApp(tk.Tk):
 
     def _ensure_stt(self):
         if self.stt is None:
+            self._set_whisper_status(f"loading ({self.whisper_model})...")
             from src.stt import STT
             self.stt = STT(model_size=self.whisper_model)
+            self._set_whisper_status(f"ready ({self.whisper_model})")
+
+    def _set_whisper_status(self, text: str):
+        self._q.put(("whisper_status", text))
+
+    def _on_whisper_change(self, *_):
+        chosen = self.whisper_var.get()
+        if chosen == self.whisper_model:
+            return
+        if self._call_thread is not None and self._call_thread.is_alive():
+            # Refuse mid-call - swapping the model out from under an active
+            # STT.listen_vad() call would be a real bug, not a nice-to-have
+            # guard. Revert the dropdown to whatever's actually loaded.
+            self.whisper_var.set(self.whisper_model)
+            self._log_transcript("[stt] can't switch model mid-call, end the call first\n")
+            return
+        self.whisper_model = chosen
+        self.stt = None  # old model (if any) just gets garbage collected
+        threading.Thread(target=self._ensure_stt, daemon=True).start()
 
     def _set_status(self, label: str):
         self._q.put(("status", label))
@@ -459,6 +499,8 @@ class CallApp(tk.Tk):
                 elif kind == "call_ended":
                     self.call_btn.configure(text="Start Call", bg="#1f9d55")
                     self.test_btn.configure(state="normal")
+                elif kind == "whisper_status":
+                    self.whisper_status_label.configure(text=payload)
         except queue.Empty:
             pass
         self.after(100, self._poll_queue)

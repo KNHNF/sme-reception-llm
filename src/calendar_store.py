@@ -8,10 +8,23 @@ In production this would be replaced by a database query (SQLite / Supabase).
 import hashlib
 import json
 import os
+import threading
 from datetime import date, datetime, timedelta
 from typing import Optional
 
 _DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "calendar.json")
+
+# Guards book_slot()'s read-check-write against two near-simultaneous callers
+# both being told the same slot succeeded. This is an in-process lock: it
+# protects concurrent threads/requests inside ONE running server process
+# (which is the actual deployment shape here - one uvicorn process, one
+# call_ui.py instance), it does NOT protect two separate OS processes both
+# writing data/calendar.json at once (e.g. two independent server instances
+# on the same machine). That would need a real file lock (the `filelock`
+# package, or a lockfile-plus-retry pattern) - flagged as a known scope
+# boundary, not implemented, since nothing in this project currently runs
+# as more than one process against the same calendar file.
+_book_lock = threading.Lock()
 
 _SLOT_TIMES = [
     "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -190,16 +203,32 @@ def describe_slot(slot: dict) -> str:
 
 
 def book_slot(date: str, time: str, service: str) -> bool:
-    slots = _load()
-    for slot in slots:
-        if slot["date"] == date and slot["time"] == time and slot["service"] == service:
-            slot["available"] = False
-            full = _read_meta()
-            full["slots"] = slots
-            with open(_DATA_PATH, "w") as f:
-                json.dump(full, f, indent=2)
-            return True
-    return False
+    """Books a slot, returning False if it's not there or already booked.
+
+    Previously this set available=False unconditionally on a match, without
+    checking the CURRENT value first - so booking an already-booked slot
+    (e.g. two callers both offered the same slot before either confirmed)
+    still returned True. The caller-facing code then told BOTH people
+    "I've booked it", a real double-booking, not just a theoretical one.
+    Wrapped in a lock so the check and the write happen as one atomic step:
+    whichever caller's book_slot() runs first under the lock wins and sees
+    True, the other sees the slot already unavailable and gets False, which
+    src/inference.py's call sites now actually check and react to instead
+    of blindly confirming.
+    """
+    with _book_lock:
+        slots = _load()
+        for slot in slots:
+            if slot["date"] == date and slot["time"] == time and slot["service"] == service:
+                if not slot["available"]:
+                    return False
+                slot["available"] = False
+                full = _read_meta()
+                full["slots"] = slots
+                with open(_DATA_PATH, "w") as f:
+                    json.dump(full, f, indent=2)
+                return True
+        return False
 
 
 def get_business_info() -> dict:

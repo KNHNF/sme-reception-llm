@@ -42,8 +42,7 @@ PHRASES = {
     "medium": "Thank you, Jack. Is there anything else I can help you with?",
     "long": (
         "Brilliant, Jack. I've booked a consultation on Tuesday the fourteenth "
-        "of July at nine a.m. In a full deployment this would trigger an email "
-        "or SMS confirmation, though that's outside scope for this prototype."
+        "of July at nine a.m. Is there anything else I can help you with?"
     ),
 }
 

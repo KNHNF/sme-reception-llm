@@ -40,6 +40,28 @@ class Session:
     confusion_count: int = 0           # increments each time the caller hits out_of_scope
     last_out_of_scope_hint: str = ""   # last field hint given (avoids identical retries)
 
+    # Third-party booking ("book an appointment for my son") - who the
+    # booking is actually for, separate from caller_name (who is on the
+    # phone). NOT reset by clear() itself (clear() runs mid-flow, e.g. right
+    # after the FIRST of two chained bookings, and this needs to survive
+    # that to reach the second one) - instead inference.py explicitly resets
+    # it once a booking flow fully resolves with nothing left queued, so it
+    # doesn't silently stick to a later, unrelated request in the same call.
+    on_behalf_of: Optional[str] = None          # e.g. "son", "daughter", "wife"
+
+    # Doctor/practitioner preference noted from the caller, logged for the
+    # human team since the booking system itself has no practitioner field.
+    # Persists for the call like on_behalf_of.
+    requested_practitioner: Optional[str] = None
+
+    # Multi-service requests ("a consultation and a follow-up") - only one
+    # pending_suggestion can be negotiated at a time, so the second service
+    # mentioned is queued here and offered automatically once the first is
+    # resolved. Deliberately NOT reset in clear(): the whole point is to
+    # survive the clear() that runs right after the first service books.
+    # Consumed (set back to None) once it becomes the new pending_suggestion.
+    queued_service: Optional[str] = None
+
     def is_expired(self) -> bool:
         return (time.time() - self.last_updated) > TIMEOUT_SECONDS
 

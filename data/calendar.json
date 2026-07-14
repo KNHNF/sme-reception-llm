@@ -858,7 +858,7 @@
       "date": "2026-07-16",
       "time": "16:30",
       "service": "consultation",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-16",
@@ -2130,7 +2130,7 @@
       "date": "2026-07-24",
       "time": "16:00",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-24",
@@ -2166,7 +2166,7 @@
       "date": "2026-07-27",
       "time": "09:00",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-27",
@@ -2220,7 +2220,7 @@
       "date": "2026-07-27",
       "time": "10:30",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-27",
@@ -2256,7 +2256,7 @@
       "date": "2026-07-27",
       "time": "11:30",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-27",
@@ -2274,7 +2274,7 @@
       "date": "2026-07-27",
       "time": "14:00",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-27",
@@ -2292,7 +2292,7 @@
       "date": "2026-07-27",
       "time": "14:30",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-27",
@@ -2310,7 +2310,7 @@
       "date": "2026-07-27",
       "time": "15:00",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-27",
@@ -2328,7 +2328,7 @@
       "date": "2026-07-27",
       "time": "15:30",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-27",
@@ -2364,7 +2364,7 @@
       "date": "2026-07-27",
       "time": "16:30",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-27",
@@ -2400,7 +2400,7 @@
       "date": "2026-07-28",
       "time": "09:30",
       "service": "general",
-      "available": true
+      "available": false
     },
     {
       "date": "2026-07-28",
