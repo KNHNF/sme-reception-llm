@@ -5,6 +5,7 @@ Reads data/calendar.json and provides slot lookup.
 In production this would be replaced by a database query (SQLite / Supabase).
 """
 
+import hashlib
 import json
 import os
 from datetime import date, datetime, timedelta
@@ -28,33 +29,83 @@ _SERVICE_ALIASES = {
     "followup":     "follow_up",
 }
 
+_DEFAULT_META = {
+    "business_name": "City Medical Practice",
+    "opening_hours": "Monday to Friday, 9am to 5pm",
+}
+
+
+def _read_meta() -> dict:
+    """Load the file's business_name/opening_hours, tolerating a missing file.
+
+    _load() and _regenerate() only ever meant to rewrite the "slots" key and
+    assumed the file itself always existed with its other fields intact.
+    Deleting data/calendar.json entirely (e.g. to force a fresh regenerate
+    after a schema change) crashed both with FileNotFoundError, since neither
+    had a path that didn't start by opening an existing file. This is the
+    one place that reads the file for its metadata, with a fallback so a
+    missing file just means "start fresh" instead of a crash.
+    """
+    try:
+        with open(_DATA_PATH) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return dict(_DEFAULT_META)
+
+
+def _pre_booked(date_str: str, time: str, service: str) -> bool:
+    """Deterministic pseudo-random "already booked" pattern for a slot.
+
+    A freshly regenerated calendar with every single slot free looks
+    unrealistic in a demo or viva (a real clinic has a mixed schedule) and
+    also means the month view is always solid green until the demo itself
+    books something. This hashes (date, time, service) to the same result
+    every time _regenerate() runs on a given day, so the pattern is stable
+    across restarts on the same day, and shifts naturally as "today" moves
+    forward and new days enter the _WEEKS window. Roughly 30% of slots come
+    back pre-booked. Not wired to any real clock trickery beyond that, it is
+    just a hash of the slot's own key, so nothing here depends on wall-clock
+    time beyond which dates exist in the schedule at all.
+    """
+    digest = hashlib.sha256(f"{date_str}|{time}|{service}".encode()).hexdigest()
+    return (int(digest[:8], 16) % 100) < 30
+
 
 def _regenerate() -> dict:
     """Build a fresh _WEEKS-week schedule from today and write it to disk."""
     slots = []
     day = date.today()
     weeks_done = 0
+    day_index = 0
     while weeks_done < _WEEKS:
         if day.weekday() < 5:
+            # Keep the first 2 business days fully open, so "check
+            # availability" / the demo script can always find a near-term
+            # slot reliably. Pre-booking only kicks in from day 3 onward,
+            # giving the calendar a lived-in look further out without
+            # risking an empty-looking or awkward demo on the nearest days.
+            apply_pre_booking = day_index >= 2
             for t in _SLOT_TIMES:
                 for svc in _SERVICES:
-                    slots.append({"date": str(day), "time": t, "service": svc, "available": True})
+                    date_str = str(day)
+                    available = not (apply_pre_booking and _pre_booked(date_str, t, svc))
+                    slots.append({"date": date_str, "time": t, "service": svc, "available": available})
+            day_index += 1
             if day.weekday() == 4:
                 weeks_done += 1
         day += timedelta(days=1)
 
-    with open(_DATA_PATH) as f:
-        full = json.load(f)
+    full = _read_meta()
     full["slots"] = slots
+    os.makedirs(os.path.dirname(_DATA_PATH), exist_ok=True)
     with open(_DATA_PATH, "w") as f:
         json.dump(full, f, indent=2)
     return full
 
 
 def _load() -> list[dict]:
-    with open(_DATA_PATH) as f:
-        data = json.load(f)
-    slots = data["slots"]
+    data = _read_meta()
+    slots = data.get("slots", [])
     today = date.today()
     today_str = str(today)
 
@@ -143,19 +194,16 @@ def book_slot(date: str, time: str, service: str) -> bool:
     for slot in slots:
         if slot["date"] == date and slot["time"] == time and slot["service"] == service:
             slot["available"] = False
-            data_path = os.path.join(os.path.dirname(__file__), "..", "data", "calendar.json")
-            with open(data_path) as f:
-                full = json.load(f)
+            full = _read_meta()
             full["slots"] = slots
-            with open(data_path, "w") as f:
+            with open(_DATA_PATH, "w") as f:
                 json.dump(full, f, indent=2)
             return True
     return False
 
 
 def get_business_info() -> dict:
-    with open(_DATA_PATH) as f:
-        data = json.load(f)
+    data = _read_meta()
     return {
         "name":  data.get("business_name", "the practice"),
         "hours": data.get("opening_hours", "Monday to Friday, 9am to 5pm"),

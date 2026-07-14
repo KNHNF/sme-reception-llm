@@ -335,26 +335,65 @@ def test_date_edge_cases(p):
 def test_slot_exhaustion(p):
     print("\n Slot exhaustion")
 
-    s = sid()
-    run(p, s, [
-        ("Hello", {}),
-        ("Ali Hassan", {}),
-        ("Yes", {}),
-        ("book a general appointment", {}),
-    ])
-    # Keep saying no until we run out
-    for i in range(25):
-        spoken, _ = turn(p, "no", s)
-        if "don't have any more" in spoken.lower() or "call you back" in spoken.lower():
-            check(f"slot exhaustion - graceful after {i+1} rejections", spoken,
-                  must_contain=["don't have"])
-            break
-        if spoken.startswith("__CRASH__"):
-            check(f"slot exhaustion - crashed at rejection {i+1}", spoken, crashed=True)
-            break
-    else:
-        check("slot exhaustion - never ran out (possible infinite loop)", "",
-              must_contain=["this text will never be found"])
+    # This test used to run against the real data/calendar.json - a 4-week
+    # calendar has well over a hundred "general" slots, so no number of "no"s
+    # under a few hundred was ever going to reach real exhaustion, the test
+    # was failing on a stale assumption (written back when the calendar
+    # covered far fewer weeks), not on an actual bug in the reject loop.
+    # It also never restored the file afterwards, so every run permanently
+    # booked one real slot. Patching inference's find_slots/get_next_slot
+    # with a tiny 3-slot pool fixes both: exhaustion is now reachable in a
+    # handful of turns, deterministically, and the real calendar file is
+    # never touched by this test.
+    import inference
+    _orig_find_slots = inference.find_slots
+    _orig_get_next_slot = inference.get_next_slot
+    _fake_slots = [
+        {"date": "2099-01-05", "time": "09:00", "service": "general", "available": True},
+        {"date": "2099-01-05", "time": "09:30", "service": "general", "available": True},
+        {"date": "2099-01-06", "time": "09:00", "service": "general", "available": True},
+    ]
+
+    def _fake_find_slots(service=None, preferred_date=None, skip=0):
+        pool = [sl for sl in _fake_slots if service is None or sl["service"] == service]
+        if preferred_date:
+            pool = sorted(pool, key=lambda sl: (sl["date"] != preferred_date, sl["date"], sl["time"]))
+        else:
+            pool = sorted(pool, key=lambda sl: (sl["date"], sl["time"]))
+        return pool[skip:skip + 10]
+
+    def _fake_get_next_slot(service=None, preferred_date=None, skip=0):
+        found = _fake_find_slots(service=service, preferred_date=preferred_date, skip=skip)
+        return found[0] if found else None
+
+    inference.find_slots = _fake_find_slots
+    inference.get_next_slot = _fake_get_next_slot
+    try:
+        s = sid()
+        run(p, s, [
+            ("Hello", {}),
+            ("Ali Hassan", {}),
+            ("Yes", {}),
+            ("book a general appointment", {}),
+        ])
+        # Keep saying no until we run out - 3 fake slots, so this should
+        # resolve within a handful of turns, well inside the 25-turn budget
+        # kept here as a generous ceiling rather than a tight expectation.
+        for i in range(25):
+            spoken, _ = turn(p, "no", s)
+            if "don't have any more" in spoken.lower() or "call you back" in spoken.lower():
+                check(f"slot exhaustion - graceful after {i+1} rejections", spoken,
+                      must_contain=["don't have"])
+                break
+            if spoken.startswith("__CRASH__"):
+                check(f"slot exhaustion - crashed at rejection {i+1}", spoken, crashed=True)
+                break
+        else:
+            check("slot exhaustion - never ran out (possible infinite loop)", "",
+                  must_contain=["this text will never be found"])
+    finally:
+        inference.find_slots = _orig_find_slots
+        inference.get_next_slot = _orig_get_next_slot
 
 
 def test_service_not_in_catalog(p):

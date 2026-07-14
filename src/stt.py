@@ -18,6 +18,7 @@ import os
 import sys
 import tempfile
 import time
+from collections import deque
 from pathlib import Path
 
 LOCAL_MODEL_DIR = "E:/Coding/models/faster-whisper"
@@ -26,7 +27,8 @@ SAMPLE_RATE     = 16000
 CHANNELS        = 1
 
 
-def _beep(frequency: float = 880.0, duration: float = 0.12, volume: float = 0.3) -> None:
+def _beep(frequency: float = 880.0, duration: float = 0.12, volume: float = 0.3,
+          on_fail=None) -> bool:
     """Short cue tone marking the exact moment real listening starts.
 
     Without this, callers guess when the mic is ready and often start
@@ -42,9 +44,12 @@ def _beep(frequency: float = 880.0, duration: float = 0.12, volume: float = 0.3)
     input+output stream use, not the API mismatch itself.
 
     Still wrapped in try/except: a missing cue is much less disruptive to
-    a live call than raising and killing the turn - but the exception is
-    now printed instead of silently swallowed, so if this still fails
-    intermittently the next real-call log will say why instead of nothing.
+    a live call than raising and killing the turn. Reported by print()
+    AND via the optional `on_fail` callback - a GUI app like call_ui.py
+    has no visible console most callers will actually be watching, so a
+    bare print() here can silently vanish. Pass e.g. a transcript-log
+    function as on_fail to see beep failures in the app itself.
+    Returns True if the tone actually played, False if it failed.
     """
     try:
         import numpy as np
@@ -53,8 +58,48 @@ def _beep(frequency: float = 880.0, duration: float = 0.12, volume: float = 0.3)
         tone = (volume * np.sin(2 * np.pi * frequency * t)).astype("float32")
         sd.play(tone, SAMPLE_RATE)
         sd.wait()
+        return True
     except Exception as e:
-        print(f"[STT] beep failed: {type(e).__name__}: {e}")
+        msg = f"[STT] beep failed: {type(e).__name__}: {e}"
+        print(msg)
+        if on_fail is not None:
+            try:
+                on_fail(msg)
+            except Exception:
+                pass
+        return False
+
+def calibrate_ambient(duration: float = 0.5) -> float:
+    """Measure the room noise floor once, in silence, and return a
+    threshold to reuse across a whole call.
+
+    Module-level (not a method) so it can be called before the STT model
+    itself has finished loading - it only touches sounddevice/numpy, never
+    self.model - letting a caller (e.g. call_ui.py) calibrate in true
+    silence right at call start, before kicking off the slow Whisper load
+    in the background and before the greeting speaks, instead of having to
+    wait for both first.
+
+    Requires: pip install sounddevice numpy
+    """
+    import numpy as np
+    import sounddevice as sd
+
+    block = int(0.03 * SAMPLE_RATE)
+    step = block / SAMPLE_RATE
+
+    def rms(x) -> float:
+        return float(np.sqrt(np.mean(np.square(x)))) if len(x) else 0.0
+
+    with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS,
+                        dtype="float32") as stream:
+        ambient = []
+        for _ in range(max(1, int(duration / step))):
+            data, _ = stream.read(block)
+            ambient.append(rms(data[:, 0]))
+    base = sorted(ambient)[len(ambient) // 2] if ambient else 0.0
+    return max(base * 3.5, 0.012)
+
 
 class STT:
     def __init__(self, model_size: str = DEFAULT_MODEL):
@@ -106,7 +151,7 @@ class STT:
     def listen_vad(self, silence_duration: float = 1.2, max_duration: float = 15.0,
                    start_timeout: float = 8.0, calibrate: float = 0.4,
                    prompt: bool = True, beep: bool = True, stop_event=None,
-                   threshold: float = None) -> str:
+                   threshold: float = None, beep_log=None) -> str:
         """Record until the speaker goes quiet, then transcribe.
 
         Energy-based voice activity detection. It measures the ambient noise
@@ -126,10 +171,23 @@ class STT:
         previously interrupted a blocking read loop mid-recording.
 
         `threshold`: skip the ambient-noise calibration and use this value
-        directly. Used after a barge-in: the caller is already mid-utterance
-        at that point, so calibrating "ambient" noise off their own voice
-        would set the threshold too high. Pass the threshold measured by
-        calibrate_ambient() at call start instead.
+        directly. ALWAYS pass this in a multi-turn call (call_ui.py /
+        demo.py) - calibrate once with calibrate_ambient() before the
+        greeting speaks, in genuine silence, and reuse that one value for
+        every turn. Leaving this None makes listen_vad recalibrate itself
+        fresh on every single turn, right after TTS playback just finished -
+        that recalibration window can catch trailing room echo or the audio
+        device still settling, which inflates the computed threshold well
+        above the true room noise floor. That mismatch is the most likely
+        cause of a caller having to raise their voice to be heard at all:
+        the threshold silently crept up on some earlier turn and stayed
+        high for the rest of the call. Passing a single pre-calibrated
+        threshold removes that per-turn recalibration entirely.
+
+        `beep_log`: optional callable(str) invoked if the beep tone fails
+        to play. print() alone is easy to miss in a GUI app with no
+        visible console - pass e.g. call_ui.py's transcript logger here so
+        beep failures show up in the app itself instead of vanishing.
 
         Requires: pip install sounddevice soundfile numpy
         """
@@ -146,10 +204,13 @@ class STT:
         def stopped() -> bool:
             return stop_event is not None and stop_event.is_set()
 
-        # Small settle delay before opening the mic. Right after TTS
-        # playback finishes, the audio device can still be mid-transition
-        # (Windows especially).
-        time.sleep(0.15)
+        # Settle delay before opening the mic. Right after TTS playback
+        # finishes, the audio device can still be mid-transition (Windows
+        # especially) - widened from 0.15s since that wasn't always enough
+        # headroom on real hardware and a rushed re-open is a plausible
+        # contributor to both the inflated-threshold and missing-beep
+        # reports.
+        time.sleep(0.35)
 
         if threshold is None:
             # Calibrate on its own short-lived stream, fully closed before
@@ -177,11 +238,6 @@ class STT:
         if stopped():
             return ""
 
-        if beep:
-            _beep()
-        if prompt:
-            print("[STT] Listening, speak now (stops when you go quiet)")
-
         buf: list = []
         started = False
         waited = 0.0
@@ -189,6 +245,31 @@ class STT:
         silent = 0.0
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS,
                             dtype="float32") as stream:
+            # Beep AFTER the listening stream is already open, not before.
+            # PortAudio buffers input continuously once the stream starts,
+            # whether or not stream.read() has been called yet, so anything
+            # the caller says during/right after the beep is sitting in that
+            # buffer waiting to be read below - it isn't lost. The previous
+            # order (beep, then open a fresh stream) had a real dead gap
+            # between the beep ending and the mic actually capturing, and
+            # callers reliably start talking right on the beep, which is
+            # exactly the word or two that gap was swallowing.
+            if beep:
+                _beep(on_fail=beep_log)
+            if prompt:
+                print("[STT] Listening, speak now (stops when you go quiet)")
+            # Keeps the last ~150ms of pre-speech audio so a short reply
+            # ("yes", "no", "that's correct") doesn't lose its attack
+            # transient. VAD only starts buffering on the exact frame that
+            # first crosses threshold, which clips the very start of the
+            # word - for a long sentence that's negligible, but for a
+            # one-word answer it's a large enough fraction of the whole clip
+            # to be the difference between Whisper hearing "yes" and hearing
+            # something else entirely (this is the actual cause of short
+            # replies like "yes"/"to book" coming back as unrelated words -
+            # not a threshold or timing bug, just too little acoustic
+            # context at the very start of a very short utterance).
+            pre_roll: deque = deque(maxlen=5)
             while True:
                 if stopped():
                     return ""
@@ -199,9 +280,12 @@ class STT:
                     waited += step
                     if level > threshold:
                         started = True
+                        buf.extend(pre_roll)
                         buf.append(samples.copy())
-                    elif waited >= start_timeout:
-                        return ""
+                    else:
+                        pre_roll.append(samples.copy())
+                        if waited >= start_timeout:
+                            return ""
                     continue
                 buf.append(samples.copy())
                 elapsed += step
@@ -235,31 +319,22 @@ class STT:
         """Measure the room noise floor once, in silence, and return a
         threshold to reuse across a whole call.
 
-        Call this once at the start of a call, before the assistant speaks.
+        Call this once at the start of a call, before the assistant speaks,
+        and pass the result to every listen_vad() call afterwards via its
+        `threshold` argument - never let listen_vad() recalibrate itself
+        mid-call (see that method's docstring for why that goes wrong).
         Do NOT call it while TTS is playing: if the mic can hear the
         speakers at all (no headset, no echo cancellation), it would
         calibrate on the assistant's own voice instead of room noise, and
-        every barge-in check downstream would be wrong.
+        every barge-in / threshold check downstream would be wrong.
 
-        Requires: pip install sounddevice numpy
+        Thin wrapper around the module-level calibrate_ambient() below -
+        kept as a method for existing call sites (self.stt.calibrate_ambient()).
+        Call the module-level version directly if you need ambient noise
+        measured before the STT model itself has finished loading (this
+        doesn't touch self.model at all, only sounddevice/numpy).
         """
-        import numpy as np
-        import sounddevice as sd
-
-        block = int(0.03 * SAMPLE_RATE)
-        step = block / SAMPLE_RATE
-
-        def rms(x) -> float:
-            return float(np.sqrt(np.mean(np.square(x)))) if len(x) else 0.0
-
-        with sd.InputStream(samplerate=SAMPLE_RATE, channels=CHANNELS,
-                            dtype="float32") as stream:
-            ambient = []
-            for _ in range(max(1, int(duration / step))):
-                data, _ = stream.read(block)
-                ambient.append(rms(data[:, 0]))
-        base = sorted(ambient)[len(ambient) // 2] if ambient else 0.0
-        return max(base * 3.5, 0.012)
+        return calibrate_ambient(duration)
 
     def detect_speech_onset(self, threshold: float, min_frames: int = 3,
                             stop_event=None) -> bool:
@@ -323,6 +398,26 @@ class STT:
             temperature=0.0,
             vad_filter=True,
             language="en",
+            # Zero-training domain bias: Whisper reads this as a hint of
+            # plausible vocabulary, which matters most on exactly the short,
+            # acoustically ambiguous clips ("yes", "to book") that have been
+            # coming back as unrelated words. Costs nothing, no fine-tuning,
+            # no extra latency worth mentioning - just biases the decoder's
+            # priors toward what a caller here actually says.
+            initial_prompt=(
+                "Appointment booking call. General appointment, consultation, "
+                "follow-up, booking, cancellation, availability. Yes, no, "
+                "that's correct, Monday, Tuesday, Wednesday, Thursday, Friday, "
+                "morning, afternoon."
+            ),
+            # Each call here is one short, independent utterance in its own
+            # file - there is no real multi-segment context to condition on
+            # within a single turn, and condition_on_previous_text defaults
+            # to True in faster-whisper, which mainly helps long continuous
+            # dictation, not isolated short replies. Off is the safer default
+            # here and is a known mitigation for repetition/hallucination
+            # artifacts on short or quiet clips.
+            condition_on_previous_text=False,
         )
         text = " ".join(s.text.strip() for s in segments).strip()
         latency = (time.perf_counter() - t0) * 1000

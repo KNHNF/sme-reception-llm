@@ -8,7 +8,8 @@ Run: python test_name_bug.py
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
+# repo root (for `from src.X import ...`), moved into tests/ on 2026-07-14.
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.inference import Pipeline
 

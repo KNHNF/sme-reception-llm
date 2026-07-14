@@ -31,6 +31,7 @@ class Session:
     # Calendar suggestion state
     pending_suggestion: Optional[dict] = None  # slot dict we just offered the caller
     suggestion_index: int = 0                  # how many slots we have already skipped
+    rejected_slots: list = field(default_factory=list)  # (date, time, service) already turned down
 
     # Profanity tracking
     profanity_strikes: int = 0
@@ -53,6 +54,7 @@ class Session:
         self.missing_fields = []
         self.pending_suggestion = None
         self.suggestion_index = 0
+        self.rejected_slots = []
         self.turn_count = 0
 
 TERMINAL_ACTIONS = {"book_appointment", "cancel_appointment", "out_of_scope"}

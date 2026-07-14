@@ -112,6 +112,8 @@ class CalendarPanel(tk.Frame):
         header.pack(fill="x")
         tk.Button(header, text="<", relief="flat", bg="#eeeeee", width=2,
                   command=self._prev_month).pack(side="left")
+        tk.Button(header, text="Today", relief="flat", bg="#eeeeee",
+                  command=self._go_to_today).pack(side="left", padx=(4, 0))
         self.month_label = tk.Label(header, text="", font=self._bold, bg=bg, fg="#222222")
         self.month_label.pack(side="left", expand=True)
         tk.Button(header, text=">", relief="flat", bg="#eeeeee", width=2,
@@ -150,6 +152,17 @@ class CalendarPanel(tk.Frame):
             self.view_year += 1
         self.render()
 
+    def _go_to_today(self):
+        """Jump straight back to the current month, no matter how far the
+        prev/next buttons have wandered. Without this, getting back to
+        "now" after a few clicks of < or > means counting months by hand,
+        the exact friction Karan flagged."""
+        today = _date_cls.today()
+        self.view_year = today.year
+        self.view_month = today.month
+        self.selected_date = None
+        self.render()
+
     def _load_slots(self) -> list:
         try:
             data = json.loads(self.calendar_path.read_text())
@@ -171,10 +184,28 @@ class CalendarPanel(tk.Frame):
 
     @staticmethod
     def _status_for_slots(slots_for_key: list) -> str:
+        """Free / partial / full, matching what a caller could actually book.
+
+        A slot's "available" flag only tracks whether it's been booked, it
+        never accounts for the time of day already passing. Without the same
+        filter calendar_store.find_slots() applies, today's date keeps
+        showing green/amber long after its last remaining slot time has gone
+        (e.g. still "free" at 10pm even though every slot for today was this
+        morning), which contradicts what check_availability actually offers.
+        """
         if not slots_for_key:
             return "none"
-        free = sum(1 for s in slots_for_key if s["available"])
-        if free == len(slots_for_key):
+        now = _datetime_cls.now()
+        today_str = now.strftime("%Y-%m-%d")
+        now_time = now.strftime("%H:%M")
+        bookable = [
+            s for s in slots_for_key
+            if s["date"] > today_str or (s["date"] == today_str and s["time"] > now_time)
+        ]
+        if not bookable:
+            return "full"  # today, but every slot's time has already passed
+        free = sum(1 for s in bookable if s["available"])
+        if free == len(bookable):
             return "free"
         if free == 0:
             return "full"
@@ -242,6 +273,13 @@ class CalendarPanel(tk.Frame):
         for s in day_slots:
             by_time.setdefault(s["time"], {})[s["service"]] = s["available"]
 
+        # Same past-time filter as _status_for_slots: today's slot times that
+        # have already gone are not really bookable, even if "available" is
+        # still True in the file, so shown badges shouldn't claim they're free.
+        now = _datetime_cls.now()
+        is_today = self.selected_date == now.strftime("%Y-%m-%d")
+        now_time = now.strftime("%H:%M")
+
         if not day_slots:
             tk.Label(self.body, text="No slots this day (weekend, or outside the schedule).",
                      font=self._small, bg=self.bg, fg="#999999").pack(anchor="w", pady=8)
@@ -259,13 +297,16 @@ class CalendarPanel(tk.Frame):
                 avail = services.get(svc_key)
                 if avail is None:
                     continue
+                if is_today and t <= now_time:
+                    avail = False  # time has passed, no longer actually bookable
                 bg_c, fg_c = CAL_COLOURS["free" if avail else "full"]
                 tk.Label(row, text=svc_label, font=self._small, bg=bg_c, fg=fg_c,
                          padx=6, pady=2).pack(side="left", padx=3)
 
 
 class CallApp(tk.Tk):
-    def __init__(self, family: str, whisper_model: str, cpu_url: str, bargein: bool = False):
+    def __init__(self, family: str, whisper_model: str, cpu_url: str, bargein: bool = False,
+                 beep: bool = False):
         super().__init__()
         self.title("SME Voice Assistant, offline demo")
         self.geometry("880x560")
@@ -275,6 +316,10 @@ class CallApp(tk.Tk):
         self.whisper_model = whisper_model
         self.cpu_url = cpu_url
         self.bargein = bargein
+        self.beep = beep  # off by default: greeting no longer promises a beep,
+                          # see GREETING in src/inference.py. The stream-open
+                          # race that used to swallow the first word is fixed
+                          # independently of whether this tone plays.
         self._bargein_threshold = None
         self.pipeline = None
         self.tts = None
@@ -476,6 +521,32 @@ class CallApp(tk.Tk):
         try:
             self._ensure_pipeline()
             self._set_status("Listening")
+            session_id = "call-ui-voice"
+            self._log_transcript("\n[call] answering...\n")
+
+            # Calibrate ambient noise FIRST, before anything else - no TTS
+            # has played yet and no STT model load is running, so this is
+            # the quietest and most reliable moment to measure the room's
+            # true noise floor. Uses the module-level calibrate_ambient()
+            # (sounddevice/numpy only), NOT self.stt.calibrate_ambient(),
+            # specifically so it doesn't have to wait for the slow Whisper
+            # model load below first.
+            #
+            # This value is then reused for every listen_vad() call for the
+            # rest of the call. Previously, calibration only happened when
+            # --bargein was on, AND even then the main listening loop below
+            # never passed the calibrated value through to listen_vad() - so
+            # every turn silently recalibrated itself instead, right after
+            # TTS playback just finished. That recalibration window can
+            # catch trailing room echo or the audio device still settling,
+            # inflating the threshold well above the true room noise floor -
+            # the most likely explanation for needing to raise your voice to
+            # be heard at all, since the threshold could silently creep up
+            # on any turn and stay high for the rest of the call.
+            self._log_transcript("[call] calibrating room noise (stay quiet a moment)...\n")
+            from src.stt import calibrate_ambient as _calibrate_ambient
+            self._bargein_threshold = _calibrate_ambient()
+
             # Load Whisper on a background thread instead of blocking here -
             # loading tiny/small can take several seconds, and doing it
             # before anything is said means the caller hears total silence
@@ -485,18 +556,7 @@ class CallApp(tk.Tk):
             stt_thread = threading.Thread(target=self._ensure_stt, daemon=True)
             stt_thread.start()
 
-            self._bargein_threshold = None
-            session_id = "call-ui-voice"
-            self._log_transcript("\n[call] answering...\n")
             greeting = self.pipeline.greet(session_id=session_id)
-
-            if self.bargein:
-                # Barge-in needs stt loaded and calibrated before playback
-                # starts, so this path can't avoid waiting for the thread.
-                stt_thread.join()
-                self._log_transcript("[bargein] calibrating room noise (stay quiet a moment)...\n")
-                self._bargein_threshold = self.stt.calibrate_ambient()
-
             pending_utterance = self._speak_result(greeting)
             stt_thread.join()  # make sure Whisper is ready before we try to listen
             while not self._stop_event.is_set():
@@ -506,10 +566,24 @@ class CallApp(tk.Tk):
                 else:
                     self._set_status("Listening")
                     utterance = self.stt.listen_vad(silence_duration=1.2, max_duration=15.0,
-                                                    stop_event=self._stop_event)
+                                                    stop_event=self._stop_event,
+                                                    threshold=self._bargein_threshold,
+                                                    beep=self.beep,
+                                                    beep_log=self._log_transcript)
                 if self._stop_event.is_set():
                     break
                 if not utterance:
+                    # listen_vad() returns "" for a few different reasons
+                    # (nobody spoke before start_timeout, a stray noise too
+                    # short to be real speech, or a transcription that came
+                    # back blank) and previously this loop just silently
+                    # re-listened with no visible sign anything happened.
+                    # That's indistinguishable from the app being broken.
+                    # This is not a fix for missed speech itself (still
+                    # worth trying a lower calibration multiplier in
+                    # STT.listen_vad if it keeps happening), just honesty
+                    # about what occurred.
+                    self._log_transcript("  (didn't catch that, listening again...)\n")
                     continue
                 ended, pending_utterance = self._run_turn(utterance, session_id)
                 if ended:
@@ -556,6 +630,13 @@ if __name__ == "__main__":
                          "Energy-based, no echo cancellation - reliable only "
                          "with a headset, or low speaker volume near the mic. "
                          "See src/bargein.py for the caveat.")
+    ap.add_argument("--beep", action="store_true",
+                    help="play a short tone right when listening starts each turn. "
+                         "Off by default: the greeting no longer says 'after the "
+                         "beep' (read as voicemail-style, not a live receptionist), "
+                         "and the fix for the missing-first-word bug was the "
+                         "stream-open ordering in STT.listen_vad, not the tone "
+                         "itself, so turning this off doesn't reintroduce it.")
     args = ap.parse_args()
 
     family = args.family
@@ -578,7 +659,7 @@ if __name__ == "__main__":
 
     try:
         app = CallApp(family=family, whisper_model=args.whisper, cpu_url=args.cpu_url,
-                      bargein=args.bargein)
+                      bargein=args.bargein, beep=args.beep)
         app.mainloop()
     finally:
         if server_proc is not None:

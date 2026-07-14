@@ -20,6 +20,9 @@ import sys
 import uuid
 from pathlib import Path
 
+# Moved into tests/ on 2026-07-14: needs both this dir (fake_spacy_stub.py
+# lives here too) and repo root (for `from src.X import ...`) on the path.
+sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
 if hasattr(sys.stdout, "reconfigure"):

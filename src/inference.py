@@ -86,12 +86,12 @@ def _extract_spelled_name(text: str):
 try:
     from src.entity_extractor import extract, to_prompt_context
     from src.sme_action_schema import ActionOutput, render_confirmation
-    from src.calendar_store import get_next_slot, book_slot, describe_slot, _ordinal
+    from src.calendar_store import get_next_slot, book_slot, describe_slot, _ordinal, find_slots
 except ImportError:
     sys.path.insert(0, str(Path(__file__).parent))
     from entity_extractor import extract, to_prompt_context
     from sme_action_schema import ActionOutput, render_confirmation
-    from calendar_store import get_next_slot, book_slot, describe_slot, _ordinal
+    from calendar_store import get_next_slot, book_slot, describe_slot, _ordinal, find_slots
 
 
 def _save_message(session_id: str, caller_name, text: str) -> None:
@@ -108,16 +108,19 @@ def _save_message(session_id: str, caller_name, text: str) -> None:
 
 
 # Shortened from the original ~30-word version (dropped "quality and", "Please
-# note that"). Ends by telling the caller to speak after the beep, since on a
-# real call they can't see the console prompt that used to be the only cue -
-# see STT.listen_vad's `beep` param, which already plays a tone right before
-# listening starts. This is a wording simplification, not legal advice: if
-# the call-recording disclosure needs specific regulatory phrasing, restore
-# the fuller sentence.
+# note that"). Previously ended with "After the beep, please tell me your
+# name" - dropped that per Karan's call: it reads like a voicemail machine,
+# not a live receptionist, and the beep was never the fix for the
+# missing-first-word problem anyway (that was a stream-open race condition in
+# STT.listen_vad, fixed separately). Listening still starts immediately after
+# this line finishes, same as a human receptionist pausing for a reply; no
+# audible cue is promised or required. This is a wording simplification, not
+# legal advice: if the call-recording disclosure needs specific regulatory
+# phrasing, restore the fuller sentence.
 GREETING = (
     "Thank you for calling City Medical Practice. "
     "This call may be recorded for training purposes. "
-    "After the beep, please tell me your name."
+    "Could I take your name, please?"
 )
 
 SYSTEM_PROMPT = (
@@ -802,25 +805,55 @@ class Pipeline:
 
             if any(w in u for w in no_words):
                 session.suggestion_index += 1
+                # Track exactly which slot just got turned down, by identity,
+                # not by position. The old approach re-searched with a global
+                # "skip" counter against a sort that re-pivots on
+                # preferred_date every time (preferred_date follows whatever
+                # was most recently suggested), so "skip N" didn't reliably
+                # mean "N slots further on" - it could revisit the same
+                # handful of slots forever without ever reaching a real
+                # exhaustion, which is exactly the infinite-loop
+                # test_pipeline.py caught (25 rejections, never ran out).
+                # Filtering out explicitly-rejected slots guarantees forward
+                # progress regardless of how the sort shifts underneath it.
+                _rejected = session.pending_suggestion
+                if _rejected:
+                    session.rejected_slots.append(
+                        (_rejected["date"], _rejected["time"], _rejected["service"]))
+
+                def _first_unrejected(candidates):
+                    for s in candidates:
+                        if (s["date"], s["time"], s["service"]) not in session.rejected_slots:
+                            return s
+                    return None
+
                 # "later date" / "another day" = jump to NEXT calendar day entirely.
                 # "later" / "earlier" alone = same day different time -> keep preferred_date.
                 _wants_diff_day = any(w in u for w in diff_day_words)
                 if _wants_diff_day:
                     # Filter all future slots to those strictly after the current suggested date
-                    try:
-                        from src.calendar_store import find_slots as _find_all
-                    except ImportError:
-                        from calendar_store import find_slots as _find_all
                     _current_date = session.pending_suggestion.get("date")
-                    _future = [s for s in _find_all(service=session.pending_suggestion.get("service"))
+                    _future = [s for s in find_slots(service=session.pending_suggestion.get("service"))
                                if s["date"] > _current_date]
-                    slot = _future[0] if _future else None
+                    slot = _first_unrejected(_future)
                 else:
-                    slot = get_next_slot(
-                        service=session.pending_suggestion.get("service"),
-                        preferred_date=session.pending_suggestion.get("date"),
-                        skip=session.suggestion_index,
-                    )
+                    # Bounded scan through find_slots' 10-at-a-time pages,
+                    # skipping past anything already rejected, until either a
+                    # fresh slot turns up or the calendar genuinely runs dry.
+                    # 30 pages = 300 candidates, comfortably more than a
+                    # 4-week calendar can ever hold for one service.
+                    svc = session.pending_suggestion.get("service")
+                    pref_date = session.pending_suggestion.get("date")
+                    slot = None
+                    batch_skip = 0
+                    for _ in range(30):
+                        batch = find_slots(service=svc, preferred_date=pref_date, skip=batch_skip)
+                        if not batch:
+                            break
+                        slot = _first_unrejected(batch)
+                        if slot:
+                            break
+                        batch_skip += 10
                 if slot:
                     session.pending_suggestion = slot
                     session.touch()
@@ -895,7 +928,17 @@ class Pipeline:
 
         # 4. Post-processing: enrich check_availability with a real suggestion
         if validated and validated.action.value == "check_availability":
-            preferred_date = getattr(validated, "date", None)
+            # Only trust the model's date field when the caller's own words
+            # actually contained a date entity. Otherwise the model can (and
+            # does) hallucinate a plausible-looking date for a request like
+            # "check availability" where none was given, which then gets
+            # treated as a preferred_date and skips over an earlier slot that
+            # was genuinely free (e.g. caller asks generally, model guesses
+            # the 15th, get_next_slot returns the 15th even though the 14th
+            # was free and chronologically first). Mirrors the has_date guard
+            # already used for the booking branch below.
+            has_date = bool(entities.get("date_resolved"))
+            preferred_date = getattr(validated, "date", None) if has_date else None
             service        = getattr(validated, "service", None)
             svc_str        = _safe_service(service.value if service else None, entities)
             slot = get_next_slot(service=svc_str, preferred_date=preferred_date,
@@ -903,6 +946,14 @@ class Pipeline:
             if slot:
                 session.pending_suggestion = slot
                 session.touch()
+                # Keep the logged/displayed action JSON honest: `parsed` still
+                # holds the model's raw fields (possibly a hallucinated date
+                # the guard above just overrode), and left as-is it shows a
+                # date in the console/transcript that disagrees with what's
+                # actually spoken - looks like a bug even when the booking
+                # logic itself is correct. Sync it to the real slot chosen.
+                parsed["date"] = slot["date"]
+                parsed["service"] = slot["service"]
                 name_part = f", {session.caller_name}" if session.caller_name else ""
                 spoken = (
                     f"Of course{name_part}. The next available slot is "
@@ -970,6 +1021,7 @@ class Pipeline:
                         # actually booked - never say "follow-up" while
                         # booking "general" underneath it.
                         validated.service = validated.service.__class__(booked_svc)
+                        parsed["service"] = booked_svc  # keep the logged action in sync too
                     book_slot(validated.date, validated.time, booked_svc)
                     spoken = render_confirmation(validated)
                 else:
@@ -981,6 +1033,13 @@ class Pipeline:
                     if slot:
                         session.pending_suggestion = slot
                         session.touch()
+                        # Same reasoning as the check_availability branch above:
+                        # `parsed` still has the model's raw (possibly vague or
+                        # hallucinated) date/service, sync it to the real slot
+                        # being offered so the logged action matches the reply.
+                        parsed["date"] = slot["date"]
+                        parsed["time"] = slot["time"]
+                        parsed["service"] = slot["service"]
                         name_part = f", {session.caller_name}" if session.caller_name else ""
                         spoken = (f"Of course{name_part}. The next available slot is "
                                   f"{describe_slot(slot)}. Does that work for you?")
@@ -1013,6 +1072,9 @@ class Pipeline:
                 if slot:
                     session.pending_suggestion = slot
                     session.touch()
+                    parsed["date"] = slot["date"]
+                    parsed["time"] = slot["time"]
+                    parsed["service"] = slot["service"]
                     name_part = f", {session.caller_name}" if session.caller_name else ""
                     spoken = (
                         f"Of course{name_part}. The earliest I have available is "

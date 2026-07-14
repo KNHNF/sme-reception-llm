@@ -17,6 +17,9 @@ import sys
 import uuid
 from pathlib import Path
 
+# Moved into tests/ on 2026-07-14: needs both this dir (fake_spacy_stub.py
+# lives here too) and repo root (for `from src.X import ...`) on the path.
+sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -31,7 +34,9 @@ PASS = "\033[92m[PASS]\033[0m"
 FAIL = "\033[91m[FAIL]\033[0m"
 results = []
 
-CAL_PATH = Path(__file__).parent / "data" / "calendar.json"
+# NB: repo root, not this file's own directory - CAL_PATH must point at the
+# real data/calendar.json regardless of how deep this test file itself sits.
+CAL_PATH = Path(__file__).parent.parent / "data" / "calendar.json"
 CAL_BACKUP = CAL_PATH.read_text() if CAL_PATH.exists() else None
 
 

@@ -1,6 +1,12 @@
 """
-Single entry point for the whole test suite. Runs every test_*.py in this
-directory as a subprocess and reports pass/fail per file plus a total.
+Single entry point for the whole test suite. Runs every test_*.py under
+tests/ as a subprocess and reports pass/fail per file plus a total.
+
+Test files moved from repo root into tests/ on 2026-07-14; this file stays
+at repo root as the entry point so `python run_all_tests.py` keeps working
+unchanged. Each subprocess runs with this file's own (repo root) working
+directory, which the moved tests' `sys.path.insert(0, "src")` calls and any
+relative data/ paths still depend on - always run this from repo root.
 
 Run: python run_all_tests.py
 Exit 0 = every file passed, exit 1 = at least one failed.
@@ -10,7 +16,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).parent
-TEST_FILES = sorted(HERE.glob("test_*.py"))
+TEST_FILES = sorted((HERE / "tests").glob("test_*.py"))
 
 PASS = "\033[92mPASS\033[0m"
 FAIL = "\033[91mFAIL\033[0m"

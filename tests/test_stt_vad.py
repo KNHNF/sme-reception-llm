@@ -1,10 +1,20 @@
 """
 STT control-flow tests via a monkeypatched sounddevice/numpy, no mic or
 faster-whisper model required. Covers calibrate_ambient(), listen_vad(),
-detect_speech_onset(), and a regression guard for the beep/InputStream
-concurrency bug fixed in src/stt.py (beep must never play while an
-InputStream is open - that was the actual cause of the intermittently
-missing beep on real calls).
+detect_speech_onset(), and a regression guard for the missing-first-word bug
+in src/stt.py.
+
+That guard's invariant flipped in session 33 (2026-07-13): the OLD design
+closed the calibration stream, played the beep on its own, THEN opened a
+fresh listening stream - which left a real dead gap between "beep ends" and
+"mic actually capturing" where the caller's first word or two, spoken right
+on the beep as instructed, was silently lost. The FIX opens the listening
+stream first and plays the beep from inside it: PortAudio buffers input
+continuously once a stream is started regardless of whether .read() has
+been called yet, so speech during/after the beep now sits in that buffer
+waiting to be read. The guard below now asserts the NEW invariant (beep
+plays while the listening stream is already open, no second stream opens
+after it) - asserting the old invariant would mean asserting the bug back in.
 
 Run: python test_stt_vad.py
 Exit 0 = all passed, exit 1 = failures.
@@ -13,7 +23,8 @@ import sys
 import types
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+# repo root (for `from src.X import ...`), moved into tests/ on 2026-07-14.
+sys.path.insert(0, str(Path(__file__).parent.parent))
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
@@ -62,7 +73,7 @@ class FakeInputStream:
 def fake_play(tone, samplerate):
     events.append("play")
     if input_open_count[0] > 0:
-        events.append("play_while_input_open!")  # the exact bug this guards against
+        events.append("play_while_input_open!")  # now the WANTED behaviour, see module docstring
 
 
 def fake_wait():
@@ -138,24 +149,35 @@ check("returns empty string on silence (nobody spoke)", result == "")
 check("did not crash or hang", True)
 
 
-# 4. Regression guard: beep never plays while an InputStream is open
-#    (the actual root cause of the intermittently missing beep bug)
+# 4. Regression guard: beep plays only once the listening stream is already
+#    open, and that same stream stays open across it (see module docstring
+#    for why this invariant flipped in session 33).
 
-print("\n=== regression: beep and InputStream are never concurrent ===")
+print("\n=== regression: beep plays inside the already-open listening stream ===")
 events.clear()
 stt.listen_vad(calibrate=0.03, start_timeout=0.03, beep=True, prompt=False)
 check("beep played at some point", "play" in events, str(events))
-check("beep never played while an InputStream was open",
-      "play_while_input_open!" not in events, str(events))
-# Also confirm the calibration stream fully closes before the beep, and a
-# fresh stream opens after - not one long-lived stream spanning the beep.
 play_idx = events.index("play")
 before = events[:play_idx]
 after = events[play_idx + 1:]
-check("calibration stream closed before the beep played",
-      before.count("input_open") == before.count("input_close"), str(before))
-check("a new stream opens after the beep (not reusing one held open across it)",
-      "input_open" in after, str(after))
+
+# "before" now legitimately contains TWO opens by this point: the
+# calibration stream's, and the listening stream's own (which must open
+# before the beep - that's the whole fix). A flat open==close count over
+# the whole "before" slice can't tell those apart, and wrongly counts the
+# still-open listening stream as unclosed. What actually matters is that
+# the calibration stream fully closes BEFORE the listening stream opens -
+# i.e. the two never overlap - not that everything in "before" is closed.
+first_open = before.index("input_open")
+second_open = before.index("input_open", first_open + 1) if before.count("input_open") > 1 else None
+first_close = before.index("input_close") if "input_close" in before else None
+check("calibration stream closes before the listening stream opens (no overlap)",
+      second_open is not None and first_close is not None and first_close < second_open,
+      str(before))
+check("the listening stream is already open when the beep plays (no dead capture gap)",
+      "play_while_input_open!" in events, str(events))
+check("no second stream opens after the beep (same listening stream held open across it)",
+      "input_open" not in after, str(after))
 
 
 # 5. detect_speech_onset triggers after min_frames consecutive loud frames
