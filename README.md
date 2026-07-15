@@ -40,17 +40,22 @@ Base models produce almost no valid JSON actions; fine-tuning takes both above 9
 
 Accuracy holds from 3.8B down to 0.5B and breaks at 360M, so 0.5B is the smallest usable model. Quantisation is nearly free down to 3-bit: Llama and Qwen hold their accuracy at 2-bit, Phi-3 collapses.
 
-### Real audio (20 clips, 2 speakers, Faster-Whisper small)
+### Real audio (88 clips, 10 speakers, Faster-Whisper small, Q4_K_M) - re-evaluated 10 July 2026
 
 | Model             | Strict | Scope-aware | Mean WER |
 |-------------------|--------|-------------|----------|
-| Llama 3.2 3B      | 25.0%  | 70.0%       | 15.4%    |
-| Qwen 2.5 1.5B     | 15.0%  | 60.0%       | 15.4%    |
-| Llama 3.2 1B      | 15.0%  | 60.0%       | 15.4%    |
-| **Qwen 2.5 0.5B** | 30.0%  | 75.0%       | 15.4%    |
-| SmolLM2 360M      | 20.0%  | 50.0%       | 15.4%    |
+| Llama 3.2 3B      | 23.9%  | 64.8%       | 15.3%    |
+| Phi-3 mini        | 20.5%  | 51.1%       | 16.5%    |
+| Qwen 2.5 1.5B     | 17.0%  | 58.0%       | 16.5%    |
+| Llama 3.2 1B      | 19.3%  | 58.0%       | 16.5%    |
+| **Qwen 2.5 0.5B** | 28.4%  | 69.3%       | 16.5%    |
+| SmolLM2 360M      | 25.0%  | 54.5%       | 16.5%    |
 
-Synthetic accuracy does not fully survive real speech, and the smallest deployed model copes best. Small sample (20 clips, 2 speakers), so treat as indicative.
+Supersedes the earlier 20-clip/2-speaker pilot. Same finding, on a larger and more diverse sample (10 speakers, 3 first languages): synthetic accuracy does not survive real speech, and the deployed model still copes best of the five. Breakdown by difficulty for Qwen 2.5 0.5B: clean 25.9%, messy 26.1%, very short utterances 75.0%, non-native speakers 33.3% - the non-native and messy-phrasing cases are where accuracy is weakest, a fair note for Limitations.
+
+**Deployed STT choice matters more than the LibriSpeech benchmark suggested.** Whisper `tiny` (the deployed model) was also run on the same 88 real clips: mean WER jumps to 49.9-52.9% (vs 15.3-16.5% for `small`), and Qwen 2.5 0.5B's scope-aware accuracy drops from 69.3% to 61.4%. The LibriSpeech benchmark (tiny 17.3% vs small 8.5% WER) understates the real-world gap between the two models by a wide margin - worth stating as its own finding, not folding into the general "real speech is harder" line.
+
+**Quantisation holds up on real speech, latency keeps dropping:** Qwen 2.5 0.5B scope-aware accuracy across quant levels (Whisper small, 88 clips) - Q4_K_M 69.3% / 814ms, Q3_K_M 63.6% / 283ms, Q2_K 64.8% / 341ms. Accuracy dips slightly below Q4_K_M but does not collapse, and latency drops further, so more aggressive quantisation is a viable option if speed matters more than the last few points of accuracy.
 
 ### CPU vs on-premise GPU latency
 
