@@ -141,6 +141,14 @@ python scripts/06_aligned_eval.py --model qwen0.5b --quant Q4_K_M
 
 Requires llama.cpp binaries in `tools/llama_cpp/bin/`. Download `llama-bXXXX-bin-win-cpu-x64.zip` from [github.com/ggerganov/llama.cpp/releases](https://github.com/ggerganov/llama.cpp/releases) and extract into `tools/llama_cpp/bin/`. The `tools/` folder is gitignored.
 
+## Provenance
+
+Third-party code and recipes this project builds on, not authored by this team:
+
+- **llama.cpp** ([ggerganov/llama.cpp](https://github.com/ggerganov/llama.cpp), MIT licence). Not vendored: `scripts/02_convert_gguf.py` clones it at runtime, and `scripts/03_cpu_server.py` can instead fetch a prebuilt release binary. Used as an external CPU inference engine, invoked as a subprocess/HTTP server; none of its source is copied into this repo.
+- **Piper TTS** ([rhasspy/piper](https://github.com/rhasspy/piper), MIT licence). Not vendored: downloaded per the setup steps below. The voice model (`en_US-lessac-medium` / `en_US-ryan-high`) is a third-party asset from [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) on Hugging Face, not trained by this team.
+- **QLoRA fine-tuning setup** (`scripts/train_qlora*.py`, `scripts/kaggle_train*.ipynb`): the quantisation config, LoRA target modules, and `SFTTrainer` usage follow the standard HuggingFace PEFT + TRL QLoRA recipe ([huggingface.co/docs/peft](https://huggingface.co/docs/peft)), adapted here for this project's data, models, and Kaggle T4 hardware constraints.
+
 ## File map
 
 ```
@@ -247,3 +255,7 @@ Create a `piper/` folder in the project root and put these two files in it:
 
 1. Piper binary: download from [github.com/rhasspy/piper/releases](https://github.com/rhasspy/piper/releases) - pick the Windows or Linux build
 2. Voice model: download `en_US-ryan-high.onnx` and its `.json` config from [huggingface.co/rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) (this is the deployed voice; any Piper voice works, update the path in `src/tts.py`)
+
+## Licence
+
+This project's own code is MIT licensed, see [LICENSE](LICENSE). llama.cpp and Piper are separate MIT-licensed third-party tools this project calls at runtime, not part of this codebase, see Provenance above.
